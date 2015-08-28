@@ -1,15 +1,4 @@
-#!/usr/bin/env python
 # pylint: disable=W0603
-
-# TODO
-# http://help.fogcreek.com/8202/xml-api
-# - new
-# - edit
-# - see parent/see-also tickets
-# - package all up and pypi
-# - handle attachments
-# - list unread
-# - cmd line switch (--verbose)
 
 from functools import wraps
 from subprocess import call
@@ -539,7 +528,3 @@ def main():
                 logger.exception('ERROR')
     finally:
         logoff()
-
-
-if __name__ == '__main__':
-    main()
