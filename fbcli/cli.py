@@ -9,6 +9,7 @@
 # - package all up and pypi
 # - handle attachments
 # - list unread
+# - cmd line switch (--verbose)
 
 from functools import wraps
 from subprocess import call
@@ -18,9 +19,9 @@ import sys
 
 from tornado.template import Template
 
-import fb
-import editor
-import ui
+from fbcli import fb
+from fbcli import editor
+from fbcli import ui
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -320,6 +321,8 @@ def get_prompt():
 def logon():
     '''Logon to FB API.
 
+    Uses $FBURL, $FBUSER and $FBPASS, otherwise prompts for them.
+
     Example:
     >>> logon
     '''
@@ -468,7 +471,7 @@ def mycases():
 
 @command('browse', 'b')
 def browse():
-    '''Browse current case in $BROWSER
+    '''Browse current case in $BROWSER.
 
     Example:
     >>> browse

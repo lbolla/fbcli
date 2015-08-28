@@ -90,7 +90,7 @@ def ltrunc(s, n):
 
 
 def completer(text, state):
-    from fbcli import COMMANDS
+    from fbcli.cli import COMMANDS
 
     all_options = COMMANDS.keys()
     # TODO persons

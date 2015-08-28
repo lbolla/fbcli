@@ -11,21 +11,23 @@ RETRY_ON_EXCS = (
 )
 
 
+def from_env_or_ask(k, question, is_password=False):
+    what = os.environ.get(k)
+    if what is not None:
+        return what
+    if is_password:
+        return getpass.getpass()
+    return raw_input(question)
+
+
 class FBClient(object):
 
     logger = logging.getLogger('fb.client')
 
     def __init__(self):
-        self._fburl = os.environ.get('FBURL', 'https://yougov.fogbugz.com/')
-
-        self._fbuser = os.environ.get('FBUSER')
-        if self._fbuser is None:
-            self._fbuser = raw_input('Username: ')
-
-        self._fbpass = os.environ.get('FBPASS')
-        if self._fbpass is None:
-            self._fbpass = getpass.getpass()
-
+        self._fburl = from_env_or_ask('FBURL', 'Fogbugz URL: ')
+        self._fbuser = from_env_or_ask('FBUSER', 'Username: ')
+        self._fbpass = from_env_or_ask('FBPASS', 'Password: ', True)
         self._fb = fogbugz.FogBugz(self._fburl)
 
     def retrying(self, f):
