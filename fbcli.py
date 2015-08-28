@@ -7,25 +7,21 @@
 # - edit
 # - see parent/see-also tickets
 # - package all up and pypi
-# - wrap FB and log everything
+# - handle attachments
 
 from functools import wraps
-import getpass
 import logging
-import os
 import sys
 
-from fogbugz import FogBugz
 from tornado.template import Template
 
+import fb
 import editor
 import ui
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('fb')
+logging.basicConfig(level=logging.DEBUG)
 
-FBURL = os.environ.get('FBURL', 'https://yougov.fogbugz.com/')
-FB = FogBugz(FBURL)
+FB = fb.FBClient()
 CURRENT_CASE = None
 CURRENT_USER = None
 
@@ -45,6 +41,7 @@ def set_current_user(user):
 
 
 def command(*names):
+    logger = logging.getLogger('fb.cmd')
 
     def wrapper(f):
 
@@ -53,6 +50,7 @@ def command(*names):
 
         @wraps(f)
         def helper(*args, **kwargs):
+            logger.debug(f.__name__)
             return f(*args, **kwargs)
 
         return helper
@@ -98,12 +96,14 @@ class FBPerson(FBObj):
     # Cache persons, who don't change that often...
     CACHE = set()
 
+    logger = logging.getLogger('fb.person')
+
     def __init__(self, person):
         self._person = person
 
     @classmethod
     def _get(cls, **kwargs):
-        logger.info('Getting person %s', kwargs)
+        cls.logger.debug('Getting person %s', kwargs)
         persons = FB.viewPerson(**kwargs)
         person = persons.find('person')
         return cls(person)
@@ -201,7 +201,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def permalink(self):
-        return FBURL + 'f/cases/{}'.format(self.id)
+        return FB.build_url('f/cases/{}'.format(self.id))
 
     @property
     def shortdesc(self):
@@ -292,12 +292,14 @@ class FBCaseSearch(FBObj):
 {% for case in obj.shortcases %}{% raw case %}
 {% end %}''')
 
+    logger = logging.getLogger('fb.search')
+
     def __init__(self, shortcases):
         self.shortcases = shortcases
 
     @classmethod
     def search(cls, q):
-        logger.info('Searching for %r', q)
+        cls.logger.debug('Searching for %r', q)
         cases = []
         resp = FB.search(q=q, cols="ixBug,sTitle,sStatus")
         for case in resp.cases.findAll('case'):
@@ -318,15 +320,8 @@ def logon():
     Example:
     >>> logon
     '''
-    logger.info('Logging in')
-    username = os.environ.get('FBUSER')
-    if username is None:
-        username = raw_input('Username: ')
-    password = os.environ.get('FBPASS')
-    if password is None:
-        password = getpass.getpass()
-    FB.logon(username, password)
-    return set_current_user(FBPerson.get_by_email(username))
+    FB.login()
+    return set_current_user(FBPerson.get_by_email(FB.current_user))
 
 
 @command('logoff', 'logout')
@@ -336,7 +331,6 @@ def logoff():
     Example:
     >>> logoff
     '''
-    logger.info('Logging out')
     FB.logoff()
     return set_current_user(None)
 
@@ -505,6 +499,7 @@ def quit_():
 
 
 def main():
+    logger = logging.getLogger('fb.main')
     ui.init_readline()
     logon()
     try:
