@@ -5,9 +5,7 @@
 # http://help.fogcreek.com/8202/xml-api
 # - edit
 # - see parent/see-also tickets
-# - bug events without a body
 # - package all up and pypi
-# - when closing, assign to opener
 
 from functools import wraps
 import getpass
@@ -94,14 +92,35 @@ class FBPerson(FBObj):
 
     TMPL = Template('''{% raw obj.fullname %} <{% raw obj.email %}>''')
 
+    # Cache persons, who don't change that often...
+    CACHE = set()
+
     def __init__(self, person):
         self._person = person
 
     @classmethod
-    def get(cls, email):
-        persons = FB.viewPerson(sEmail=email)
+    def _get(cls, **kwargs):
+        persons = FB.viewPerson(**kwargs)
         person = persons.find('person')
         return cls(person)
+
+    @classmethod
+    def get_by_email(cls, email):
+        for p in cls.CACHE:
+            if p.email == email:
+                return p
+        p = cls._get(sEmail=email)
+        cls.CACHE.add(p)
+        return p
+
+    @classmethod
+    def get_by_id(cls, person_id):
+        for p in cls.CACHE:
+            if p.id == person_id:
+                return p
+        p = cls._get(ixPerson=person_id)
+        cls.CACHE.add(p)
+        return p
 
     @property
     def id(self):
@@ -121,8 +140,10 @@ class FBCase(FBObj):
     TMPL = Template('''
 {{ ui.hl1 }}
 [{% raw ui.cyan(obj.id) %}] {% raw ui.blue(obj.title) %}
-{% raw obj.permalink %}
-{% raw ui.status(obj.status) %} - Assigned to {% raw ui.red(obj.assigned_to) %}
+{% raw ui.status(obj.status) %} - \
+Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
+Assigned to {% raw ui.red(obj.assigned_to) %}
+{% raw ui.white(obj.permalink) %}
 {{ ui.hl1}}
 {% for event in obj.events %}
 {{ ui.hl2 }}
@@ -145,6 +166,7 @@ class FBCase(FBObj):
             'sTitle',
             'sStatus',
             'sPersonAssignedTo',
+            'ixPersonOpenedBy',
             'events',
         ]
         return FB.search(q=ixBug, cols=','.join(cols))
@@ -162,6 +184,14 @@ class FBCase(FBObj):
         return self._case.spersonassignedto.text
 
     @property
+    def opened_by_id(self):
+        return int(self._case.ixpersonopenedby.text)
+
+    @property
+    def opened_by(self):
+        return FBPerson.get_by_id(self.opened_by_id)
+
+    @property
     def events(self):
         return [FBBugEvent(event) for event in self._case.events]
 
@@ -176,7 +206,8 @@ class FBCase(FBObj):
             self.title)
 
     def resolve(self):
-        FB.resolve(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
+        FB.resolve(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
         self.reset()
 
     def reopen(self):
@@ -184,7 +215,8 @@ class FBCase(FBObj):
         self.reset()
 
     def close(self):
-        FB.close(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
+        FB.close(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
         self.reset()
 
     def reactivate(self):
@@ -206,7 +238,8 @@ class FBBugEvent(FBObj):
 
     TMPL = Template(
         '''{{ obj.dt }} - {{ obj.person }}
-{% raw obj.comment %}''')
+{% raw ui.white(obj.desc) %}
+{% raw ui.gray(obj.comment) %}''')
 
     def __init__(self, event):
         self._event = event
@@ -222,6 +255,10 @@ class FBBugEvent(FBObj):
     @property
     def person(self):
         return self._event.sperson.text
+
+    @property
+    def desc(self):
+        return self._event.evtdescription.text
 
     @property
     def comment(self):
@@ -280,7 +317,7 @@ def logon():
     if password is None:
         password = getpass.getpass()
     FB.logon(username, password)
-    return set_current_user(FBPerson.get(username))
+    return set_current_user(FBPerson.get_by_email(username))
 
 
 @command('logoff', 'logout')

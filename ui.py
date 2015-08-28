@@ -41,12 +41,15 @@ def _supports_color(stream):
 black = partial(colorize, '0;30')
 red = partial(colorize, '0;31')
 green = partial(colorize, '0;32')
-yellow = partial(colorize, '0;33')
+brown = partial(colorize, '0;33')
 blue = partial(colorize, '0;34')
 purple = partial(colorize, '0;35')
 cyan = partial(colorize, '0;36')
 gray = partial(colorize, '0;37')
 darkgray = partial(colorize, '1;30')
+lightred = partial(colorize, '1;31')
+yellow = partial(colorize, '1;33')
+white = partial(colorize, '1;37')
 
 
 def status(s):
