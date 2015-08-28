@@ -1,6 +1,7 @@
 # pylint: disable=W0603
 
 from functools import wraps
+from itertools import dropwhile
 from subprocess import call
 import logging
 import os
@@ -139,6 +140,9 @@ class FBCase(FBObj):
 {% raw ui.status(obj.status) %} - \
 Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
+{% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
+{% if obj.children_ids %}Children {{ obj.children_ids }} {% end %}\
+{% if obj.related_ids %}See also {{ obj.related_ids }}{% end %}
 {% raw ui.white(obj.permalink) %}
 {{ ui.hl1}}
 {% for event in obj.events %}
@@ -163,6 +167,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'sStatus',
             'sPersonAssignedTo',
             'ixPersonOpenedBy',
+            'ixBugParent',
+            'ixBugChildren',
+            'ixRelatedBugs',
+            'tags',
             'events',
         ]
         return FB.search(q=ixBug, cols=','.join(cols))
@@ -188,8 +196,24 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return FBPerson.get_by_id(self.opened_by_id)
 
     @property
+    def parent_id(self):
+        return int(self._case.ixbugparent.text)
+
+    @property
+    def children_ids(self):
+        return map(int, filter(None, self._case.ixbugchildren.text.split(',')))
+
+    @property
+    def related_ids(self):
+        return map(int, filter(None, self._case.ixrelatedbugs.text.split(',')))
+
+    @property
     def events(self):
         return [FBBugEvent(event) for event in self._case.events]
+
+    @property
+    def tags(self):
+        return self._case.tags.text.split(',')
 
     @property
     def permalink(self):
@@ -231,8 +255,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             **kwargs)
         self.reset()
 
-    # def email(self):
-    # def remind(self):
+    @classmethod
+    def new(cls, **kwargs):
+        rs = FB.new(**kwargs)
+        ixbug = rs.find('case')['ixbug']
+        return cls(ixbug)
 
 
 class FBBugEvent(FBObj):
@@ -471,6 +498,62 @@ def browse():
         print 'Set $BROWSER first'
     else:
         call([browser, CURRENT_CASE.permalink])
+
+
+@command('new')
+def new():
+    '''Create a new ticket.
+
+    Example:
+    >>> new
+    '''
+
+    tmpl = Template('''Title:
+Assign to: {{ user.fullname }}
+Priority: For consideration
+Project:
+
+<Insert description here>
+
+# Leave a blank line between headers and description.
+''')
+    header = tmpl.generate(user=CURRENT_USER)
+    text = editor.write(header=header)
+
+    def get(token):
+        for line in text.splitlines():
+            if line.startswith(token):
+                return line[len(token):].strip()
+        return None
+
+    def get_desc():
+        lines = dropwhile(lambda line: line.strip(), text.splitlines())
+        lines.next()  # Drop empty line
+        return '\n'.join(lines)
+
+    params = dict(
+        sTitle=get('Title:'),
+        sPersonAssignedTo=get('Assign to:'),
+        sProject=get('Project:'),
+        sPriority=get('Priority:'),
+        sEvent=get_desc(),
+    )
+    FBCase.new(**params)
+
+
+@command('ipython')
+def ipython():
+    '''Superpowers!
+
+    Inside the IPython shell you have access to all the internals of
+    the REPL, in particular:
+        FB: is the Fogbugz client
+        CURRENT_CASE: is the current case
+        CURRENT_USER: is the current user
+'''
+
+    import IPython
+    IPython.embed()
 
 
 @command('quit', 'exit', 'bye')
