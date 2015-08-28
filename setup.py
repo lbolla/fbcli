@@ -9,6 +9,7 @@ setup(
     author_email='lorenzo.bolla@yougov.com',
     packages=find_packages('.'),
     install_requires=[
+        'fogbugz',
         'tornado>=4,<5',
     ],
     entry_points={
