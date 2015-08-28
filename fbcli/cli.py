@@ -584,6 +584,7 @@ Priority: For consideration
 
 @command('history', 'hist', 'h')
 def history():
+    '''Show the most recently viewed cases.'''
     print FBShortCase.HISTORY
 
 
