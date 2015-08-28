@@ -1,10 +1,28 @@
 * FogBugz Command Line Interface
 
+Install with:
+
+    $> python setup.py install
+
+Run with:
+
+    $> fb
+    $> fb --logging=debug  # verbose
+    $> fb --help  # for more options
+
+Get help from `fb`:
+
+    >>> help
+
 Based on:
-http://help.fogcreek.com/8202/xml-api
-https://developers.fogbugz.com/?W199
-https://developers.fogbugz.com/default.asp?W194#toc_4
-http://help.fogcreek.com/8202/xml-api#Sample_XML_Payloads
+
+    http://help.fogcreek.com/8202/xml-api
+
+* References
+
+    https://developers.fogbugz.com/?W199
+    https://developers.fogbugz.com/default.asp?W194#toc_4
+    http://help.fogcreek.com/8202/xml-api#Sample_XML_Payloads
 
 * TODO
 
