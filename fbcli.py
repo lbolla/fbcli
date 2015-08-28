@@ -3,9 +3,11 @@
 
 # TODO
 # http://help.fogcreek.com/8202/xml-api
+# - new
 # - edit
 # - see parent/see-also tickets
 # - package all up and pypi
+# - wrap FB and log everything
 
 from functools import wraps
 import getpass
@@ -16,6 +18,7 @@ import sys
 from fogbugz import FogBugz
 from tornado.template import Template
 
+import editor
 import ui
 
 logging.basicConfig(level=logging.INFO)
@@ -100,6 +103,7 @@ class FBPerson(FBObj):
 
     @classmethod
     def _get(cls, **kwargs):
+        logger.info('Getting person %s', kwargs)
         persons = FB.viewPerson(**kwargs)
         person = persons.find('person')
         return cls(person)
@@ -229,7 +233,12 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             sPersonAssignedTo=person)
         self.reset()
 
-    # def edit(self):
+    def edit(self, **kwargs):
+        FB.edit(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **kwargs)
+        self.reset()
+
     # def email(self):
     # def remind(self):
 
@@ -239,7 +248,7 @@ class FBBugEvent(FBObj):
     TMPL = Template(
         '''{{ obj.dt }} - {{ obj.person }}
 {% raw ui.white(obj.desc) %}
-{% raw ui.gray(obj.comment) %}''')
+{% raw obj.comment %}''')
 
     def __init__(self, event):
         self._event = event
@@ -417,6 +426,23 @@ def assign_current(*args):
     assert_current()
     person = ' '.join(args)
     CURRENT_CASE.assign(person)
+
+
+@command('comment')
+def comment_current():
+    '''Add a comment to the current ticket.
+
+    Call $EDITOR to write the comment.
+
+    Example:
+    >>> comment
+    '''
+    assert_current()
+    comment = editor.write()
+    if comment:
+        CURRENT_CASE.edit(sEvent=comment)
+    else:
+        print 'Aborted.'
 
 
 @command('search')
