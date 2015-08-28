@@ -25,6 +25,7 @@ COMMANDS = {}
 def set_current_case(case):
     global CURRENT_CASE
     CURRENT_CASE = case
+    FBShortCase.HISTORY.push(case)
     return case
 
 
@@ -142,6 +143,25 @@ class FBPerson(FBObj):
         return self._person.semail.text
 
 
+class History(FBObj):
+
+    TMPL = Template('''
+{% for case in obj._history %}{% raw case %}
+{% end %}''')
+
+    def __init__(self):
+        self._history = []
+
+    def push(self, case):
+        scase = FBShortCase.from_case(case)
+        if scase in self._history:
+            self._history.remove(scase)
+        self._history.append(scase)
+
+    def __iter__(self):
+        return iter(self._history)
+
+
 class FBCase(FBObj):
 
     TMPL = Template('''
@@ -231,8 +251,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def shortdesc(self):
-        return '{} - {}'.format(
-            self.permalink,
+        return '[{}] {}'.format(
+            self.id,
             self.title)
 
     def resolve(self):
@@ -309,10 +329,20 @@ class FBShortCase(FBObj):
         '''{% raw ui.cyan(str(obj.id).rjust(6)) %} - \
 {% raw ui.status(ui.ltrunc(obj.status, 20)) %} {% raw ui.blue(obj.title) %}''')
 
+    # Keep a history of visited cases, in short form
+    HISTORY = History()
+
     def __init__(self, ixBug, status, title):
         self.id = ixBug
         self.status = status
         self.title = title
+
+    @classmethod
+    def from_case(cls, case):
+        return cls(case.id, case.status, case.title)
+
+    def __eq__(self, case):
+        return self.id == case.id
 
 
 class FBCaseSearch(FBObj):
@@ -397,7 +427,7 @@ def whoami():
     print CURRENT_USER
 
 
-@command('show')
+@command('show', 's')
 def show(ixBug=None):
     '''Show the current ticket.
 
@@ -550,6 +580,11 @@ Priority: For consideration
         sEvent=get_desc(),
     )
     FBCase.new(**params)
+
+
+@command('history', 'hist', 'h')
+def history():
+    print FBShortCase.HISTORY
 
 
 @command('ipython')
