@@ -7,12 +7,11 @@ import os
 import sys
 
 from tornado.template import Template
+from tornado.options import parse_command_line
 
 from fbcli import fb
 from fbcli import editor
 from fbcli import ui
-
-logging.basicConfig(level=logging.DEBUG)
 
 FB = fb.FBClient()
 CURRENT_CASE = None
@@ -512,7 +511,12 @@ def exec_(cmd, args):
 def main():
     logger = logging.getLogger('fb.main')
     ui.init_readline()
+    args = parse_command_line()
+
     logon()
+    if args:
+        exec_(args[0], args[1:])
+
     try:
         while True:
             try:
