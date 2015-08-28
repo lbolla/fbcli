@@ -8,9 +8,12 @@
 # - see parent/see-also tickets
 # - package all up and pypi
 # - handle attachments
+# - list unread
 
 from functools import wraps
+from subprocess import call
 import logging
+import os
 import sys
 
 from tornado.template import Template
@@ -463,6 +466,33 @@ def mycases():
     search(q)
 
 
+@command('browse', 'b')
+def browse():
+    '''Browse current case in $BROWSER
+
+    Example:
+    >>> browse
+    >>> b
+    '''
+    assert_current()
+    browser = os.environ.get('BROWSER')
+    if browser is None:
+        print 'Set $BROWSER first'
+    else:
+        call([browser, CURRENT_CASE.permalink])
+
+
+@command('quit', 'exit', 'bye')
+def quit_():
+    '''Quit.
+
+    Example:
+    >>> quit
+    '''
+    print 'Bye!'
+    sys.exit(0)
+
+
 def read_():
     cmdline = raw_input(get_prompt())
     if not cmdline:
@@ -485,17 +515,6 @@ def exec_(cmd, args):
         f = COMMANDS.get(cmd)
         assert f is not None, 'Unknown command {}'.format(cmd)
         return f(*args)
-
-
-@command('quit', 'exit', 'bye')
-def quit_():
-    '''Quit.
-
-    Example:
-    >>> quit
-    '''
-    print 'Bye!'
-    sys.exit(0)
 
 
 def main():
