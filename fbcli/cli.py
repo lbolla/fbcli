@@ -3,6 +3,7 @@
 from functools import wraps
 from itertools import dropwhile
 from subprocess import call
+import contextlib
 import logging
 import os
 import sys
@@ -49,6 +50,15 @@ def command(*names):
         return helper
 
     return wrapper
+
+
+def abort_if_empty(text):
+    if not text:
+        raise Aborted()
+
+
+class Aborted(Exception):
+    pass
 
 
 class Command(object):
@@ -454,10 +464,8 @@ def comment_current():
     '''
     assert_current()
     comment = editor.write()
-    if comment:
-        CURRENT_CASE.edit(sEvent=comment)
-    else:
-        print 'Aborted.'
+    abort_if_empty(comment)
+    CURRENT_CASE.edit(sEvent=comment)
 
 
 @command('search')
@@ -509,9 +517,10 @@ def new():
     '''
 
     tmpl = Template('''Title:
+Project:
+Area:
 Assign to: {{ user.fullname }}
 Priority: For consideration
-Project:
 
 <Insert description here>
 
@@ -519,6 +528,7 @@ Project:
 ''')
     header = tmpl.generate(user=CURRENT_USER)
     text = editor.write(header=header)
+    abort_if_empty(text)
 
     def get(token):
         for line in text.splitlines():
@@ -535,6 +545,7 @@ Project:
         sTitle=get('Title:'),
         sPersonAssignedTo=get('Assign to:'),
         sProject=get('Project:'),
+        sArea=get('Area:'),
         sPriority=get('Priority:'),
         sEvent=get_desc(),
     )
@@ -591,27 +602,36 @@ def exec_(cmd, args):
         return f(*args)
 
 
-def main():
+@contextlib.contextmanager
+def exec_ctx():
     logger = logging.getLogger('fb.main')
+    try:
+        yield
+    except EOFError:
+        quit_()
+    except Aborted:
+        print 'Aborted.'
+    except KeyboardInterrupt:
+        pass
+    except Exception:
+        logger.exception('ERROR')
+
+
+def main():
     ui.init_readline()
     args = parse_command_line()
 
     logon()
     if args:
-        exec_(args[0], args[1:])
+        with exec_ctx():
+            exec_(args[0], args[1:])
 
     try:
         while True:
-            try:
+            with exec_ctx():
                 cmd, args = read_()
                 if cmd is None:
                     continue
                 exec_(cmd, args)
-            except EOFError:
-                quit_()
-            except KeyboardInterrupt:
-                pass
-            except Exception:
-                logger.exception('ERROR')
     finally:
         logoff()
