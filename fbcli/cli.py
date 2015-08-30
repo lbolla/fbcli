@@ -367,6 +367,25 @@ class FBCaseSearch(FBObj):
         return cls(cases)
 
 
+class FBProject(FBObj):
+
+    TMPL = Template(
+        '''{% raw ui.cyan(str(obj.id).rjust(4)) %} - \
+{% raw ui.rtrunc(obj.name, 30) %} {% raw ui.darkgray(obj.owner) %}''')
+
+    def __init__(self, id_, name, owner):
+        self.id = id_
+        self.name = name
+        self.owner = owner
+
+    @classmethod
+    def from_xml(cls, xml):
+        id_ = int(xml.ixproject.text)
+        name = xml.sproject.text
+        owner = xml.spersonowner.text
+        return cls(id_, name, owner)
+
+
 def get_prompt():
     return ui.cyan('%s>>> ' % (
         '[%s] ' % CURRENT_CASE.id if CURRENT_CASE else ''))
@@ -580,6 +599,25 @@ Priority: For consideration
         sEvent=get_desc(),
     )
     FBCase.new(**params)
+
+
+@command('list')
+def list_(*args):
+    '''List projects, areas, etc.
+
+    Example:
+    >>> list projects
+    '''
+
+    what = args[0]
+    assert what in ['projects'], 'Not implemented'
+    if what == 'projects':
+        result = FB.listProjects()
+        print
+        for pxml in result.findAll('project'):
+            proj = FBProject.from_xml(pxml)
+            print proj
+        print
 
 
 @command('raw')

@@ -30,3 +30,6 @@ Based on:
 - handle attachments
 - list unread
 - simplify creation by listing projects/areas/persons
+- readline completer using a global var, updated with new stuff (ids, persons, etc.)
+- tty screencast
+    - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
