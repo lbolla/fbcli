@@ -582,6 +582,16 @@ Priority: For consideration
     FBCase.new(**params)
 
 
+@command('raw')
+def raw(*args):
+    '''Execute a command on FB API and return raw result.
+
+    Mostly used for debugging.'''
+    cmd, args = args[0], args[1:]
+    result = getattr(FB, cmd)(*args)
+    print result
+
+
 @command('history', 'hist', 'h')
 def history():
     '''Show the most recently viewed cases.'''
