@@ -12,6 +12,10 @@ def colorize(color, s):
     if _supports_color(sys.stdout):
         color_open = '\033[{}m'.format(color)
         color_close = '\033[0m'
+        if sys.stdin.isatty():
+            # \001 and \002 mark ignore boundaries for readline
+            color_open = '\001' + color_open + '\002'
+            color_close = '\001' + color_close + '\002'
     else:
         color_open = color_close = ''
     if not isinstance(s, basestring):
