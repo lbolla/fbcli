@@ -1,4 +1,4 @@
-# pylint: disable=W0603,W0621
+# pylint: disable=W0603,W0621,R0904
 
 from functools import wraps
 from itertools import dropwhile
@@ -178,6 +178,7 @@ class FBCase(FBObj):
 {{ ui.hl1 }}
 [{% raw ui.cyan(obj.id) %}] {% raw ui.blue(obj.title) %}
 {% raw ui.status(obj.status) %} - \
+{% raw ui.lightgreen(obj.priority) %} - \
 Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
@@ -187,25 +188,29 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 {{ ui.hl1}}
 {% for event in obj.events %}
 {{ ui.hl2 }}
-{% raw event %}
-{% end %}
+{% raw event %}{% end %}
 ''')
 
-    def __init__(self, ixBug):
-        self.id = int(ixBug)
-        self.reset()
+    def __init__(self, case):
+        self._case = case
+        set_current_case(self)
 
     def reset(self):
         self._case = self._get_raw(self.id)
-        return set_current_case(self)
+
+    @classmethod
+    def get_by_id(cls, ixBug):
+        raw = FBCase._get_raw(ixBug)
+        return cls(raw)
 
     @staticmethod
     def _get_raw(ixBug):
-        assert isinstance(ixBug, int)
         cols = [
+            'ixBug',
             'sTitle',
             'sStatus',
             'sPersonAssignedTo',
+            'sPriority',
             'ixPersonOpenedBy',
             'ixBugParent',
             'ixBugChildren',
@@ -213,7 +218,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'tags',
             'events',
         ]
-        return FB.search(q=ixBug, cols=','.join(cols))
+        return FB.search(q=int(ixBug), cols=','.join(cols))
+
+    @property
+    def id(self):
+        return int(self._case.ixbug.text)
 
     @property
     def title(self):
@@ -222,6 +231,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def status(self):
         return self._case.sstatus.text
+
+    @property
+    def priority(self):
+        return self._case.spriority.text
 
     @property
     def assigned_to(self):
@@ -299,7 +312,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     def new(cls, **kwargs):
         rs = FB.new(**kwargs)
         ixbug = rs.find('case')['ixbug']
-        return cls(ixbug)
+        return cls.get_by_id(ixbug)
 
 
 class FBAttachment(FBObj):
@@ -538,7 +551,7 @@ def show(ixBug=None):
         assert_current()
         print CURRENT_CASE
     else:
-        case = FBCase(int(ixBug))
+        case = FBCase.get_by_id(int(ixBug))
         print case
 
 
@@ -756,7 +769,7 @@ def raw(*args):
 
 @command('history', 'hist', 'h')
 def history():
-    '''Show the most recently viewed cases.'''
+    '''Show the most recently viewed cases, last is more recent.'''
     print FBShortCase.HISTORY
 
 
