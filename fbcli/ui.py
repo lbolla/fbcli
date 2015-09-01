@@ -8,11 +8,11 @@ import sys
 import termios
 
 
-def colorize(color, s):
+def colorize(color, s, readline_safe=False):
     if _supports_color(sys.stdout):
         color_open = '\033[{}m'.format(color)
         color_close = '\033[0m'
-        if sys.stdin.isatty():
+        if readline_safe and sys.stdin.isatty():
             # \001 and \002 mark ignore boundaries for readline
             color_open = '\001' + color_open + '\002'
             color_close = '\001' + color_close + '\002'

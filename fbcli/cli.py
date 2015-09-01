@@ -468,7 +468,7 @@ class FBArea(FBObj):
 
 def get_prompt():
     return ui.cyan('%s>>> ' % (
-        '[%s] ' % CURRENT_CASE.id if CURRENT_CASE else ''))
+        '[%s] ' % CURRENT_CASE.id if CURRENT_CASE else ''), readline_safe=True)
 
 
 @command('logon', 'login')
