@@ -12,6 +12,7 @@ setup(
         'fogbugz',
         'tornado>=4,<5',
     ],
+    test_suite='tests',
     entry_points={
         'console_scripts': [
             'fb = fbcli.cli:main',

@@ -18,6 +18,12 @@ Based on:
 
     http://help.fogcreek.com/8202/xml-api
 
+* Development
+
+Run tests with:
+
+   >>> python setup.py test
+
 * References
 
     https://developers.fogbugz.com/?W199
@@ -29,5 +35,6 @@ Based on:
 - edit
 - list unread
 - simplify creation by listing projects/areas/persons
+- define aliases
 - tty screencast
     - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
