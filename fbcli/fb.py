@@ -52,9 +52,13 @@ class FBClient(object):
     def current_user(self):
         return self._fbuser
 
+    @property
+    def current_token(self):
+        return self._fb._token
+
     def login(self):
         self.logger.debug('Logging in')
         self._fb.logon(self._fbuser, self._fbpass)
 
-    def build_url(self, path):
+    def full_url(self, path):
         return self._fburl + path

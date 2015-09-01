@@ -7,6 +7,9 @@ import contextlib
 import logging
 import os
 import sys
+import tempfile
+import urlparse
+import urllib2
 
 from tornado.template import Template
 from tornado.options import parse_command_line
@@ -104,6 +107,7 @@ class FBPerson(FBObj):
 
     def __init__(self, person):
         self._person = person
+        self.CACHE.add(self)
 
     @classmethod
     def _get(cls, **kwargs):
@@ -118,7 +122,6 @@ class FBPerson(FBObj):
             if p.email == email:
                 return p
         p = cls._get(sEmail=email)
-        cls.CACHE.add(p)
         return p
 
     @classmethod
@@ -127,7 +130,6 @@ class FBPerson(FBObj):
             if p.id == person_id:
                 return p
         p = cls._get(ixPerson=person_id)
-        cls.CACHE.add(p)
         return p
 
     @property
@@ -247,7 +249,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def permalink(self):
-        return FB.build_url('f/cases/{}'.format(self.id))
+        return FB.full_url('f/cases/{}'.format(self.id))
 
     @property
     def shortdesc(self):
@@ -295,11 +297,19 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 class FBAttachment(FBObj):
 
     TMPL = Template(
-        '''{{ ui.purple(obj.filename) }} - \
-{% raw ui.lightpurple(obj.url) %}''')
+        '''[{{ ui.lightpurple(obj.id) }}] {{ ui.purple(obj.filename) }}''')
+
+    CACHE = {}
 
     def __init__(self, attachment):
         self._attachment = attachment
+        self.CACHE[self.id] = self
+
+    @property
+    def id(self):
+        url = urlparse.urlparse(self.url)
+        q = urlparse.parse_qs(url.query)
+        return int(q['ixAttachment'][0])
 
     @property
     def filename(self):
@@ -307,12 +317,19 @@ class FBAttachment(FBObj):
 
     @property
     def url(self):
-        return self._attachment.surl.text
+        url = self._attachment.surl.text.replace('&amp;', '&')
+        return FB.full_url(url)
 
     def download(self):
-        # TODO
-        # hit url, but add "token"
-        pass
+        url = self.url + '&token={}'.format(FB.current_token)
+        r = urllib2.urlopen(url)
+        assert r.getcode() == 200, 'Failed to download {}'.format(url)
+
+        fname = os.path.join(tempfile.gettempdir(), self.filename)
+        with open(fname, 'wb') as fid:
+            fid.write(r.read())
+        print 'Saved to {}'.format(fname)
+        call(['xdg-open', fname])
 
 
 class FBBugEvent(FBObj):
@@ -698,6 +715,25 @@ def people():
     for person in sorted(people, key=lambda p: (p.fullname, p.email)):
         print person
     print
+
+
+@command('attachment')
+def attachment(*args):
+    '''Download attachment id or list known attachments.
+
+    Example:
+    >>> attachment  # list attachments
+    >>> attachment 1234  # download attachment 1234
+    '''
+    if len(args) > 0:
+        id_ = int(args[0])
+        a = FBAttachment.CACHE[id_]
+        a.download()
+    else:
+        print
+        for a in sorted(FBAttachment.CACHE.itervalues(), key=lambda a: a.id):
+            print a
+        print
 
 
 @command('raw')
