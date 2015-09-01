@@ -58,6 +58,7 @@ def command(*names):
 
 def abort_if_empty(text):
     if not text:
+        editor.clear()
         raise Aborted()
 
 
@@ -176,7 +177,8 @@ class FBCase(FBObj):
 
     TMPL = Template('''
 {{ ui.hl1 }}
-[{% raw ui.cyan(obj.id) %}] {% raw ui.blue(obj.title) %}
+[{% raw ui.cyan(obj.id) %}] ({% raw obj.project %}/{% raw obj.area %}) \
+{% raw ui.blue(obj.title) %}
 {% raw ui.status(obj.status) %} - \
 {% raw ui.lightgreen(obj.priority) %} - \
 Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
@@ -211,6 +213,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'sStatus',
             'sPersonAssignedTo',
             'sPriority',
+            'sProject',
+            'sArea',
             'ixPersonOpenedBy',
             'ixBugParent',
             'ixBugChildren',
@@ -235,6 +239,14 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def priority(self):
         return self._case.spriority.text
+
+    @property
+    def project(self):
+        return self._case.sproject.text
+
+    @property
+    def area(self):
+        return self._case.sarea.text
 
     @property
     def assigned_to(self):
@@ -278,34 +290,35 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.id,
             self.title)
 
-    def resolve(self):
-        FB.resolve(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
+    def edit(self, **kwargs):
+        FB.edit(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **kwargs)
         self.reset()
 
-    def reopen(self):
-        FB.reopen(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
+    def resolve(self, **kwargs):
+        FB.resolve(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+        self.reset()
+
+    def reopen(self, **kwargs):
+        FB.reopen(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+        self.reset()
+
+    def reactivate(self, **kwargs):
+        FB.reactivate(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+        self.reset()
+
+    def assign(self, person, **kwargs):
+        FB.assign(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            sPersonAssignedTo=person, **kwargs)
         self.reset()
 
     def close(self):
         FB.close(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
-        self.reset()
-
-    def reactivate(self):
-        FB.reactivate(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
-        self.reset()
-
-    def assign(self, person):
-        FB.assign(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            sPersonAssignedTo=person)
-        self.reset()
-
-    def edit(self, **kwargs):
-        FB.edit(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            **kwargs)
         self.reset()
 
     @classmethod
@@ -394,7 +407,7 @@ class FBShortCase(FBObj):
 
     TMPL = Template(
         '''{% raw ui.cyan(str(obj.id).rjust(6)) %} - \
-{% raw ui.status(ui.ltrunc(obj.status, 20)) %} {% raw ui.blue(obj.title) %}''')
+{% raw ui.status(ui.rtrunc(obj.status, 20)) %} {% raw ui.blue(obj.title) %}''')
 
     # Keep a history of visited cases, in short form
     HISTORY = History()
@@ -544,7 +557,7 @@ def show(ixBug=None):
     '''Show the current ticket.
 
     Example:
-    >>> show  # shows the current ticket
+    >>> show  # shows the current ticket, without refreshing it
     >>> show 1234  # shows ticket 1234
     '''
     if ixBug is None:
@@ -553,6 +566,17 @@ def show(ixBug=None):
     else:
         case = FBCase.get_by_id(int(ixBug))
         print case
+
+
+@command('reload', 'r')
+def reload_():
+    '''Reload current ticket.
+
+    Example:
+    >>> reload
+    '''
+    assert_current()
+    show(CURRENT_CASE.id)
 
 
 @command('close')
@@ -566,33 +590,45 @@ def close_current():
 def reactivate_current():
     '''Reactivate the current ticket.'''
     assert_current()
-    CURRENT_CASE.reactivate()
+    sEvent = editor.ask_and_maybe_write('Add a comment?')
+    CURRENT_CASE.reactivate(sEvent=sEvent)
+    editor.clear()
 
 
 @command('resolve')
 def resolve_current():
     '''Resolve the current ticket.'''
     assert_current()
-    CURRENT_CASE.resolve()
+    sEvent = editor.ask_and_maybe_write('Add a comment?')
+    CURRENT_CASE.resolve(sEvent=sEvent)
+    editor.clear()
 
 
 @command('reopen')
 def reopen_current():
     '''Reopen the current ticket.'''
     assert_current()
-    CURRENT_CASE.reopen()
+    sEvent = editor.ask_and_maybe_write('Add a comment?')
+    CURRENT_CASE.reopen(sEvent=sEvent)
+    editor.clear()
 
 
 @command('assign')
 def assign_current(*args):
-    '''Assign the current ticket to person.
+    '''Assign the current ticket to someone.
+
+    Note: `person` must be the person's full name. See command
+    `people` for a list of persons.
 
     Example:
-    >>> assign lorenzo bolla
+    >>> assign <person>
+    >>> assign Lorenzo Bolla
     '''
     assert_current()
     person = ' '.join(args)
-    CURRENT_CASE.assign(person)
+    sEvent = editor.ask_and_maybe_write('Add a comment?')
+    CURRENT_CASE.assign(person, sEvent=sEvent)
+    editor.clear()
 
 
 @command('comment', 'c')
@@ -608,6 +644,7 @@ def comment_current():
     comment = editor.write()
     abort_if_empty(comment)
     CURRENT_CASE.edit(sEvent=comment)
+    editor.clear()
 
 
 @command('search')
@@ -692,6 +729,7 @@ Priority: Need to fix
         sEvent=get_desc(),
     )
     FBCase.new(**params)
+    editor.clear()
 
 
 @command('projects')

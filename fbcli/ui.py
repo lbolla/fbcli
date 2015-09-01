@@ -101,7 +101,6 @@ def completer(text, state):
     all_options = COMMANDS.keys()
     all_options += [str(case.id) for case in FBShortCase.HISTORY]
     all_options += [person.fullname for person in FBPerson.CACHE]
-    all_options += [person.email for person in FBPerson.CACHE]
 
     options = [x for x in all_options if x.startswith(text)]
     try:

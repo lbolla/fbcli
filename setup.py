@@ -6,7 +6,7 @@ setup(
     name='fbcli',
     version=__version__,
     author='Lorenzo Bolla',
-    author_email='lorenzo.bolla@yougov.com',
+    author_email='lbolla@gmail.com',
     packages=find_packages('.'),
     install_requires=[
         'fogbugz',
