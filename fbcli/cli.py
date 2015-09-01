@@ -61,6 +61,14 @@ def abort_if_empty(text):
         raise Aborted()
 
 
+def xdg_open(what):
+    retval = call('which xdg-open > /dev/null', shell=True)
+    if retval != 0:
+        logging.warning('Cannot open: No xdg-open available')
+    else:
+        call(['xdg-open', what])
+
+
 class Aborted(Exception):
     pass
 
@@ -329,7 +337,7 @@ class FBAttachment(FBObj):
         with open(fname, 'wb') as fid:
             fid.write(r.read())
         print 'Saved to {}'.format(fname)
-        call(['xdg-open', fname])
+        xdg_open(fname)
 
 
 class FBBugEvent(FBObj):
@@ -723,7 +731,7 @@ def attachment(*args):
 
     Example:
     >>> attachment  # list attachments
-    >>> attachment 1234  # download attachment 1234
+    >>> attachment 1234  # download and view attachment 1234
     '''
     if len(args) > 0:
         id_ = int(args[0])
