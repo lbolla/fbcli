@@ -1,4 +1,4 @@
-# pylint: disable=W0603
+# pylint: disable=W0603,W0621
 
 from functools import wraps
 from itertools import dropwhile
@@ -292,12 +292,37 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return cls(ixbug)
 
 
+class FBAttachment(FBObj):
+
+    TMPL = Template(
+        '''{{ ui.purple(obj.filename) }} - \
+{% raw ui.lightpurple(obj.url) %}''')
+
+    def __init__(self, attachment):
+        self._attachment = attachment
+
+    @property
+    def filename(self):
+        return self._attachment.sfilename.text
+
+    @property
+    def url(self):
+        return self._attachment.surl.text
+
+    def download(self):
+        # TODO
+        # hit url, but add "token"
+        pass
+
+
 class FBBugEvent(FBObj):
 
     TMPL = Template(
         '''{{ obj.dt }} - {{ obj.person }}
 {% raw ui.white(obj.desc) %}
-{% raw obj.comment %}''')
+{% raw obj.comment %}{% if obj.attachments %}
+{% for a in obj.attachments %}{% raw a %}{% end %}{% end %}
+''')
 
     def __init__(self, event):
         self._event = event
@@ -321,6 +346,10 @@ class FBBugEvent(FBObj):
     @property
     def comment(self):
         return self._event.s.text
+
+    @property
+    def attachments(self):
+        return [FBAttachment(a) for a in self._event.findAll('attachment')]
 
 
 class FBShortCase(FBObj):
@@ -373,17 +402,43 @@ class FBProject(FBObj):
         '''{% raw ui.cyan(str(obj.id).rjust(4)) %} - \
 {% raw ui.rtrunc(obj.name, 30) %} {% raw ui.darkgray(obj.owner) %}''')
 
-    def __init__(self, id_, name, owner):
-        self.id = id_
-        self.name = name
-        self.owner = owner
+    def __init__(self, project):
+        self._project = project
 
-    @classmethod
-    def from_xml(cls, xml):
-        id_ = int(xml.ixproject.text)
-        name = xml.sproject.text
-        owner = xml.spersonowner.text
-        return cls(id_, name, owner)
+    @property
+    def id(self):
+        return int(self._project.ixproject.text)
+
+    @property
+    def name(self):
+        return self._project.sproject.text
+
+    @property
+    def owner(self):
+        return self._project.spersonowner.text
+
+
+class FBArea(FBObj):
+
+    TMPL = Template(
+        '''{% raw ui.cyan(str(obj.id).rjust(4)) %} - \
+{% raw ui.darkgray(ui.rtrunc(obj.project, 30)) %} \
+{% raw ui.ltrunc(obj.name, 30) %}''')
+
+    def __init__(self, area):
+        self._area = area
+
+    @property
+    def id(self):
+        return int(self._area.ixarea.text)
+
+    @property
+    def name(self):
+        return self._area.sarea.text
+
+    @property
+    def project(self):
+        return self._area.sproject.text
 
 
 def get_prompt():
@@ -569,7 +624,7 @@ def new():
 Project:
 Area:
 Assign to: {{ user.fullname }}
-Priority: For consideration
+Priority: Need to fix
 
 <Insert description here>
 
@@ -601,23 +656,48 @@ Priority: For consideration
     FBCase.new(**params)
 
 
-@command('list')
-def list_(*args):
-    '''List projects, areas, etc.
+@command('projects')
+def projects():
+    '''List projects.
 
     Example:
-    >>> list projects
+    >>> projects
     '''
+    result = FB.listProjects()
+    print
+    for pxml in result.findAll('project'):
+        print FBProject(pxml)
+    print
 
-    what = args[0]
-    assert what in ['projects'], 'Not implemented'
-    if what == 'projects':
-        result = FB.listProjects()
-        print
-        for pxml in result.findAll('project'):
-            proj = FBProject.from_xml(pxml)
-            print proj
-        print
+
+@command('areas')
+def areas():
+    '''List areas.
+
+    Example:
+    >>> areas
+    '''
+    result = FB.listAreas()
+    areas = [FBArea(a) for a in result.findAll('area')]
+    print
+    for area in sorted(areas, key=lambda a: (a.project, a.name)):
+        print area
+    print
+
+
+@command('people')
+def people():
+    '''List people.
+
+    Example:
+    >>> people
+    '''
+    result = FB.listPeople()
+    people = [FBPerson(a) for a in result.findAll('person')]
+    print
+    for person in sorted(people, key=lambda p: (p.fullname, p.email)):
+        print person
+    print
 
 
 @command('raw')
@@ -627,7 +707,7 @@ def raw(*args):
     Mostly used for debugging.'''
     cmd, args = args[0], args[1:]
     result = getattr(FB, cmd)(*args)
-    print result
+    print result.prettify()
 
 
 @command('history', 'hist', 'h')

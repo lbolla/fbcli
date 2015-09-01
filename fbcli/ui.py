@@ -49,6 +49,7 @@ gray = partial(colorize, '0;37')
 darkgray = partial(colorize, '1;30')
 lightred = partial(colorize, '1;31')
 yellow = partial(colorize, '1;33')
+lightpurple = partial(colorize, '1;35')
 white = partial(colorize, '1;37')
 
 
@@ -78,7 +79,7 @@ def _get_hw():
 
 HEIGHT, WIDTH = _get_hw()
 hl1 = yellow('=' * WIDTH)
-hl2 = yellow('-' * WIDTH)
+hl2 = brown('-' * WIDTH)
 
 
 def rtrunc(s, n):
