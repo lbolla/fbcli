@@ -595,7 +595,7 @@ def assign_current(*args):
     CURRENT_CASE.assign(person)
 
 
-@command('comment')
+@command('comment', 'c')
 def comment_current():
     '''Add a comment to the current ticket.
 
