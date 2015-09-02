@@ -37,7 +37,5 @@ Run tests with:
 - "mycases" to show project, area and priority
 - tty screencast
     - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
-- allow to "upload" attachments
-  - CURRENT_CASE.edit(Files={'file_test.png': open('/tmp/BrandIndex Chart.png')})
 - handle milestones
 

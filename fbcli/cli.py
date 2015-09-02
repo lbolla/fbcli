@@ -453,20 +453,40 @@ class FBBugEvent(FBObj):
 class FBShortCase(FBObj):
 
     TMPL = Template(
-        '''{% raw ui.cyan(str(obj.id).rjust(6)) %} - \
-{% raw ui.status(ui.rtrunc(obj.status, 20)) %} {% raw ui.blue(obj.title) %}''')
+        '''{% raw ui.cyan(str(obj.id).rjust(6)) %} \
+{% raw ui.status(ui.rtrunc(obj.status, 20)) %} \
+{% raw ui.gray(ui.rtrunc(obj.project, 15)) %} \
+{% raw ui.blue(obj.title) %}''')
 
     # Keep a history of visited cases, in short form
     HISTORY = History()
 
-    def __init__(self, ixBug, status, title):
-        self.id = ixBug
-        self.status = status
-        self.title = title
+    def __init__(self, case):
+        self._case = case
 
     @classmethod
     def from_case(cls, case):
-        return cls(case.id, case.status, case.title)
+        return cls.from_xml(case._case)  # pylint: disable=W0212
+
+    @classmethod
+    def from_xml(cls, case):
+        return cls(case)
+
+    @property
+    def id(self):
+        return int(self._case.ixbug.text)
+
+    @property
+    def status(self):
+        return self._case.sstatus.text
+
+    @property
+    def title(self):
+        return self._case.stitle.text
+
+    @property
+    def project(self):
+        return self._case.sproject.text
 
     def __eq__(self, case):
         return self.id == case.id
@@ -487,10 +507,9 @@ class FBCaseSearch(FBObj):
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
         cases = []
-        resp = FB.search(q=q, cols="ixBug,sTitle,sStatus")
+        resp = FB.search(q=q, cols="ixBug,sTitle,sStatus,sProject")
         for case in resp.cases.findAll('case'):
-            cases.append(FBShortCase(
-                int(case.ixbug.text), case.sstatus.text, case.stitle.text))
+            cases.append(FBShortCase.from_xml(case))
         return cls(cases)
 
 
