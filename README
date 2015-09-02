@@ -37,3 +37,6 @@ Run tests with:
 - "mycases" to show project, area and priority
 - tty screencast
     - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
+- "links" command to parse all the links in a case
+  - "browse" to browse it
+- allow to "upload" attachments

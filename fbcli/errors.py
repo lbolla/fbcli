@@ -1,0 +1,2 @@
+class Aborted(Exception):
+    pass

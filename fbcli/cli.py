@@ -14,6 +14,7 @@ import urllib2
 from tornado.template import Template
 from tornado.options import parse_command_line
 
+from fbcli import errors
 from fbcli import fb
 from fbcli import editor
 from fbcli import ui
@@ -56,22 +57,12 @@ def command(*names):
     return wrapper
 
 
-def abort_if_empty(text):
-    if not text:
-        editor.clear()
-        raise Aborted()
-
-
 def xdg_open(what):
     retval = call('which xdg-open > /dev/null', shell=True)
     if retval != 0:
         logging.warning('Cannot open: No xdg-open available')
     else:
         call(['xdg-open', what])
-
-
-class Aborted(Exception):
-    pass
 
 
 class Command(object):
@@ -167,7 +158,7 @@ class History(FBObj):
         scase = FBShortCase.from_case(case)
         if scase in self._history:
             self._history.remove(scase)
-        self._history.append(scase)
+        self._history.insert(0, scase)
 
     def __iter__(self):
         return iter(self._history)
@@ -222,7 +213,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'tags',
             'events',
         ]
-        return FB.search(q=int(ixBug), cols=','.join(cols))
+        raw = FB.search(q=int(ixBug), cols=','.join(cols))
+        count = int(raw.cases.get('count'))
+        assert count != 0, 'Cannot find case {}'.format(ixBug)
+        assert count == 1, 'Found too many cases with ixBug=={}'.format(ixBug)
+        return raw
 
     @property
     def id(self):
@@ -277,6 +272,13 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return [FBBugEvent(event) for event in self._case.events]
 
     @property
+    def attachments(self):
+        attachments = []
+        for event in self.events:
+            attachments.extend(event.attachments)
+        return attachments
+
+    @property
     def tags(self):
         return self._case.tags.text.split(',')
 
@@ -290,30 +292,43 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.id,
             self.title)
 
+    @staticmethod
+    def _clean_kwargs(kwargs):
+        # Empty sEvent is rendered as 'None': no need to submit
+        if 'sEvent' in kwargs:
+            if not kwargs['sEvent']:
+                del kwargs['sEvent']
+        return kwargs
+
     def edit(self, **kwargs):
         FB.edit(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            **kwargs)
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def resolve(self, **kwargs):
         FB.resolve(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def reopen(self, **kwargs):
-        FB.reopen(ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+        FB.reopen(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def reactivate(self, **kwargs):
         FB.reactivate(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id, **kwargs)
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def assign(self, person, **kwargs):
         FB.assign(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            sPersonAssignedTo=person, **kwargs)
+            sPersonAssignedTo=person,
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def close(self):
@@ -333,11 +348,8 @@ class FBAttachment(FBObj):
     TMPL = Template(
         '''[{{ ui.lightpurple(obj.id) }}] {{ ui.purple(obj.filename) }}''')
 
-    CACHE = {}
-
     def __init__(self, attachment):
         self._attachment = attachment
-        self.CACHE[self.id] = self
 
     @property
     def id(self):
@@ -590,27 +602,24 @@ def close_current():
 def reactivate_current():
     '''Reactivate the current ticket.'''
     assert_current()
-    sEvent = editor.ask_and_maybe_write('Add a comment?')
-    CURRENT_CASE.reactivate(sEvent=sEvent)
-    editor.clear()
+    with editor.maybe_writing('Add a comment?') as sEvent:
+        CURRENT_CASE.reactivate(sEvent=sEvent)
 
 
 @command('resolve')
 def resolve_current():
     '''Resolve the current ticket.'''
     assert_current()
-    sEvent = editor.ask_and_maybe_write('Add a comment?')
-    CURRENT_CASE.resolve(sEvent=sEvent)
-    editor.clear()
+    with editor.maybe_writing('Add a comment?') as sEvent:
+        CURRENT_CASE.resolve(sEvent=sEvent)
 
 
 @command('reopen')
 def reopen_current():
     '''Reopen the current ticket.'''
     assert_current()
-    sEvent = editor.ask_and_maybe_write('Add a comment?')
-    CURRENT_CASE.reopen(sEvent=sEvent)
-    editor.clear()
+    with editor.maybe_writing('Add a comment?') as sEvent:
+        CURRENT_CASE.reopen(sEvent=sEvent)
 
 
 @command('assign')
@@ -626,9 +635,8 @@ def assign_current(*args):
     '''
     assert_current()
     person = ' '.join(args)
-    sEvent = editor.ask_and_maybe_write('Add a comment?')
-    CURRENT_CASE.assign(person, sEvent=sEvent)
-    editor.clear()
+    with editor.maybe_writing('Add a comment?') as sEvent:
+        CURRENT_CASE.assign(person, sEvent=sEvent)
 
 
 @command('comment', 'c')
@@ -641,10 +649,9 @@ def comment_current():
     >>> comment
     '''
     assert_current()
-    comment = editor.write()
-    abort_if_empty(comment)
-    CURRENT_CASE.edit(sEvent=comment)
-    editor.clear()
+    with editor.writing() as comment:
+        editor.abort_if_empty(comment)
+        CURRENT_CASE.edit(sEvent=comment)
 
 
 @command('search')
@@ -706,30 +713,29 @@ Priority: Need to fix
 # Leave a blank line between headers and description.
 ''')
     header = tmpl.generate(user=CURRENT_USER)
-    text = editor.write(header=header)
-    abort_if_empty(text)
+    with editor.writing(header=header) as text:
+        editor.abort_if_empty(text)
 
-    def get(token):
-        for line in text.splitlines():
-            if line.startswith(token):
-                return line[len(token):].strip()
-        return None
+        def get(token):
+            for line in text.splitlines():
+                if line.startswith(token):
+                    return line[len(token):].strip()
+            return None
 
-    def get_desc():
-        lines = dropwhile(lambda line: line.strip(), text.splitlines())
-        lines.next()  # Drop empty line
-        return '\n'.join(lines)
+        def get_desc():
+            lines = dropwhile(lambda line: line.strip(), text.splitlines())
+            lines.next()  # Drop empty line
+            return '\n'.join(lines)
 
-    params = dict(
-        sTitle=get('Title:'),
-        sPersonAssignedTo=get('Assign to:'),
-        sProject=get('Project:'),
-        sArea=get('Area:'),
-        sPriority=get('Priority:'),
-        sEvent=get_desc(),
-    )
-    FBCase.new(**params)
-    editor.clear()
+        params = dict(
+            sTitle=get('Title:'),
+            sPersonAssignedTo=get('Assign to:'),
+            sProject=get('Project:'),
+            sArea=get('Area:'),
+            sPriority=get('Priority:'),
+            sEvent=get_desc(),
+        )
+        FBCase.new(**params)
 
 
 @command('projects')
@@ -778,21 +784,29 @@ def people():
 
 @command('attachment')
 def attachment(*args):
-    '''Download attachment id or list known attachments.
+    '''Download attachment id or list attachments in current case.
 
     Example:
     >>> attachment  # list attachments
     >>> attachment 1234  # download and view attachment 1234
     '''
+    assert_current()
     if len(args) > 0:
         id_ = int(args[0])
-        a = FBAttachment.CACHE[id_]
-        a.download()
+        for a in CURRENT_CASE.attachments:
+            if a.id == id_:
+                a.download()
+                break
+        else:
+            assert False, 'Attachment not found in current case'
     else:
-        print
-        for a in sorted(FBAttachment.CACHE.itervalues(), key=lambda a: a.id):
-            print a
-        print
+        if CURRENT_CASE.attachments:
+            print
+            for a in CURRENT_CASE.attachments:
+                print a
+            print
+        else:
+            print 'No attachments.'
 
 
 @command('raw')
@@ -807,7 +821,7 @@ def raw(*args):
 
 @command('history', 'hist', 'h')
 def history():
-    '''Show the most recently viewed cases, last is more recent.'''
+    '''Show the most recently viewed cases, most recent first'''
     print FBShortCase.HISTORY
 
 
@@ -868,7 +882,7 @@ def exec_ctx():
         yield
     except EOFError:
         quit_()
-    except Aborted:
+    except errors.Aborted:
         print 'Aborted.'
     except KeyboardInterrupt:
         pass
