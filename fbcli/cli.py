@@ -627,38 +627,38 @@ def reload_():
 
 
 @command('close')
-def close_current():
+def close():
     '''Close the current ticket.'''
     assert_current()
     CURRENT_CASE.close()
 
 
 @command('reactivate')
-def reactivate_current():
+def reactivate():
     '''Reactivate the current ticket.'''
     assert_current()
-    with editor.maybe_writing('Add a comment?') as sEvent:
-        CURRENT_CASE.reactivate(sEvent=sEvent)
+    with editor.maybe_writing('Add a comment?') as text:
+        CURRENT_CASE.reactivate(sEvent=text.body)
 
 
 @command('resolve')
-def resolve_current():
+def resolve():
     '''Resolve the current ticket.'''
     assert_current()
-    with editor.maybe_writing('Add a comment?') as sEvent:
-        CURRENT_CASE.resolve(sEvent=sEvent)
+    with editor.maybe_writing('Add a comment?') as text:
+        CURRENT_CASE.resolve(sEvent=text.body)
 
 
 @command('reopen')
-def reopen_current():
+def reopen():
     '''Reopen the current ticket.'''
     assert_current()
-    with editor.maybe_writing('Add a comment?') as sEvent:
-        CURRENT_CASE.reopen(sEvent=sEvent)
+    with editor.maybe_writing('Add a comment?') as text:
+        CURRENT_CASE.reopen(sEvent=text.body)
 
 
 @command('assign')
-def assign_current(*args):
+def assign(*args):
     '''Assign the current ticket to someone.
 
     Note: `person` must be the person's full name. See command
@@ -670,12 +670,12 @@ def assign_current(*args):
     '''
     assert_current()
     person = ' '.join(args)
-    with editor.maybe_writing('Add a comment?') as sEvent:
-        CURRENT_CASE.assign(person, sEvent=sEvent)
+    with editor.maybe_writing('Add a comment?') as text:
+        CURRENT_CASE.assign(person, sEvent=text.body)
 
 
 @command('comment', 'c')
-def comment_current():
+def comment():
     '''Add a comment to the current ticket.
 
     Call $EDITOR to write the comment.
@@ -684,9 +684,10 @@ def comment_current():
     >>> comment
     '''
     assert_current()
-    with editor.writing() as comment:
-        editor.abort_if_empty(comment)
-        CURRENT_CASE.edit(sEvent=comment)
+    with editor.writing() as text:
+        editor.abort_if_empty(text)
+        # TODO handle files
+        CURRENT_CASE.edit(sEvent=text.body)
 
 
 @command('search')
@@ -739,32 +740,29 @@ Area:
 Assign to: {{ user.fullname }}
 Priority: Need to fix
 
+---
+
 <Insert description here>
 
-# Leave a blank line between headers and description.
+# The above header must be valid YAML.
+# Use "---" as separator between the header and the body.
+# To upload files use:
+#    Files:
+#      - path_to_file_1
+#      - path_to_file_2
 ''')
     header = tmpl.generate(user=CURRENT_USER)
     with editor.writing(header=header) as text:
         editor.abort_if_empty(text)
 
-        def get(token):
-            for line in text.splitlines():
-                if line.startswith(token):
-                    return line[len(token):].strip()
-            return None
-
-        def get_desc():
-            lines = dropwhile(lambda line: line.strip(), text.splitlines())
-            lines.next()  # Drop empty line
-            return '\n'.join(lines)
-
+        # TODO handle files
         params = dict(
-            sTitle=get('Title:'),
-            sPersonAssignedTo=get('Assign to:'),
-            sProject=get('Project:'),
-            sArea=get('Area:'),
-            sPriority=get('Priority:'),
-            sEvent=get_desc(),
+            sTitle=text.meta.get('Title'),
+            sPersonAssignedTo=text.meta.get('Assign to'),
+            sProject=text.meta.get('Project'),
+            sArea=text.meta.get('Area'),
+            sPriority=text.meta.get('Priority'),
+            sEvent=text.body,
         )
         FBCase.new(**params)
 

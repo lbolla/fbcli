@@ -1,7 +1,11 @@
+from StringIO import StringIO
+from itertools import takewhile, dropwhile
 from subprocess import call
 import contextlib
 import os
 import tempfile
+
+import yaml
 
 from fbcli import errors
 
@@ -54,7 +58,7 @@ def _write(header=DEFAULT_HEADER):
         call([EDITOR, fid.name])
         fid.seek(0)
         text = fid.read()
-        return _strip_comments(text)
+        return Text(text)
 
     finally:
         fid.close()
@@ -99,5 +103,46 @@ def maybe_writing(question, header=DEFAULT_HEADER):
 
 
 def abort_if_empty(text):
-    if not text:
+    if text.is_empty():
         raise errors.Aborted()
+
+
+class Text(object):
+
+    SEP = '---'
+
+    def __init__(self, text):
+        self._header, self._raw_body = self._parse(text)
+
+    def _parse(self, text):
+        lines = {line.strip() for line in text.splitlines()}
+        if self.SEP in lines:
+            return self._parse_with_header(text)
+        return self._parse_no_header(text)
+
+    @staticmethod
+    def _parse_no_header(text):
+        return None, text
+
+    def _parse_with_header(self, text):
+        lines = (line.strip() for line in text.splitlines())
+        # Take everything up to sep
+        header = '\n'.join(
+            takewhile(lambda line: line != self.SEP, lines))
+        # drop SEP
+        lines.next()
+        # the rest is body
+        body = '\n'.join(lines)
+        return header, body
+
+    @property
+    def meta(self):
+        buf = StringIO(self._header)
+        return yaml.load(buf)
+
+    @property
+    def body(self):
+        return _strip_comments(self._raw_body.decode('utf-8')).strip('\n')
+
+    def is_empty(self):
+        return not self.body

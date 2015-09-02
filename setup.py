@@ -10,7 +10,8 @@ setup(
     packages=find_packages('.'),
     install_requires=[
         'fogbugz',
-        'tornado>=4,<5',
+        'tornado>=4,<5dev',
+        'pyyaml>=3,<4dev',
     ],
     test_suite='tests',
     entry_points={
