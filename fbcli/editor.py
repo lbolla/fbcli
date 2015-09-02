@@ -1,5 +1,5 @@
 from StringIO import StringIO
-from itertools import takewhile, dropwhile
+from itertools import takewhile
 from subprocess import call
 import contextlib
 import os
@@ -13,6 +13,12 @@ EDITOR = os.environ.get('EDITOR', 'vim')
 COMMENT_CHAR = '#'
 FOOTER = '''# Lines starting wth "#" will be ignored.
 # Leave this file empty to abort action.
+# It's possible to add metadata in the format of a header.
+# Use "---" as separator between the header and the body.
+# E.g. To upload files use:
+#    Files:
+#      - path_to_file_1
+#      - path_to_file_2
 '''
 
 DEFAULT_HEADER = '\n'
@@ -137,6 +143,8 @@ class Text(object):
 
     @property
     def meta(self):
+        if self._header is None:
+            return {}
         buf = StringIO(self._header)
         return yaml.load(buf)
 
@@ -144,5 +152,39 @@ class Text(object):
     def body(self):
         return _strip_comments(self._raw_body.decode('utf-8')).strip('\n')
 
+    @property
+    def nfiles(self):
+        return len(self.meta.get('Files', []))
+
+    @property
+    def files(self):
+        fs = {}
+        for fname in self.meta.get('Files', []):
+            bname = os.path.basename(fname)
+            fs[bname] = open(fname, 'rb')
+        return fs
+
     def is_empty(self):
         return not self.body
+
+    def get_params_for_new(self):
+        meta = self.meta
+        params = dict(
+            sTitle=meta.get('Title'),
+            sPersonAssignedTo=meta.get('Assign to'),
+            sProject=meta.get('Project'),
+            sArea=meta.get('Area'),
+            sPriority=meta.get('Priority'),
+            sEvent=self.body,
+        )
+        if self.nfiles > 0:
+            params['Files'] = self.files
+        return params
+
+    def get_params_for_comment(self):
+        params = dict(
+            sEvent=self.body,
+        )
+        if self.nfiles > 0:
+            params['Files'] = self.files
+        return params

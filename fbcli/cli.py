@@ -638,7 +638,8 @@ def reactivate():
     '''Reactivate the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        CURRENT_CASE.reactivate(sEvent=text.body)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.reactivate(**params)
 
 
 @command('resolve')
@@ -646,7 +647,8 @@ def resolve():
     '''Resolve the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        CURRENT_CASE.resolve(sEvent=text.body)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.resolve(**params)
 
 
 @command('reopen')
@@ -654,7 +656,8 @@ def reopen():
     '''Reopen the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        CURRENT_CASE.reopen(sEvent=text.body)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.reopen(**params)
 
 
 @command('assign')
@@ -671,7 +674,8 @@ def assign(*args):
     assert_current()
     person = ' '.join(args)
     with editor.maybe_writing('Add a comment?') as text:
-        CURRENT_CASE.assign(person, sEvent=text.body)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.assign(person, **params)
 
 
 @command('comment', 'c')
@@ -686,8 +690,8 @@ def comment():
     assert_current()
     with editor.writing() as text:
         editor.abort_if_empty(text)
-        # TODO handle files
-        CURRENT_CASE.edit(sEvent=text.body)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.edit(**params)
 
 
 @command('search')
@@ -744,26 +748,12 @@ Priority: Need to fix
 
 <Insert description here>
 
-# The above header must be valid YAML.
-# Use "---" as separator between the header and the body.
-# To upload files use:
-#    Files:
-#      - path_to_file_1
-#      - path_to_file_2
 ''')
+
     header = tmpl.generate(user=CURRENT_USER)
     with editor.writing(header=header) as text:
         editor.abort_if_empty(text)
-
-        # TODO handle files
-        params = dict(
-            sTitle=text.meta.get('Title'),
-            sPersonAssignedTo=text.meta.get('Assign to'),
-            sProject=text.meta.get('Project'),
-            sArea=text.meta.get('Area'),
-            sPriority=text.meta.get('Priority'),
-            sEvent=text.body,
-        )
+        params = text.get_params_for_new()
         FBCase.new(**params)
 
 
