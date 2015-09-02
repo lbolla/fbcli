@@ -6,6 +6,7 @@ from subprocess import call
 import contextlib
 import logging
 import os
+import re
 import sys
 import tempfile
 import urlparse
@@ -14,6 +15,7 @@ import urllib2
 from tornado.template import Template
 from tornado.options import parse_command_line
 
+from fbcli import browser
 from fbcli import errors
 from fbcli import fb
 from fbcli import editor
@@ -24,6 +26,9 @@ CURRENT_CASE = None
 CURRENT_USER = None
 
 COMMANDS = {}
+
+# Poor man HTML link regex
+URL_RE = re.compile(r'\bhttp[s]?://[^\b\n\r]*')
 
 
 def set_current_case(case):
@@ -279,6 +284,16 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return attachments
 
     @property
+    def links(self):
+        ilink, links = 0, []
+        for event in self.events:
+            for url in event.urls:
+                link = FBLink(ilink, url)
+                ilink += 1
+                links.append(link)
+        return links
+
+    @property
     def tags(self):
         return self._case.tags.text.split(',')
 
@@ -336,11 +351,27 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
         self.reset()
 
+    def browse(self):
+        browser.browse(self.permalink)
+
     @classmethod
     def new(cls, **kwargs):
         rs = FB.new(**kwargs)
         ixbug = rs.find('case')['ixbug']
         return cls.get_by_id(ixbug)
+
+
+class FBLink(FBObj):
+
+    TMPL = Template(
+        '''[{{ ui.lightpurple(obj.id) }}] {{ ui.purple(obj.url) }}''')
+
+    def __init__(self, id_, url):
+        self.id = id_
+        self.url = url
+
+    def browse(self):
+        browser.browse(self.url)
 
 
 class FBAttachment(FBObj):
@@ -409,6 +440,10 @@ class FBBugEvent(FBObj):
     @property
     def comment(self):
         return self._event.s.text
+
+    @property
+    def urls(self):
+        return URL_RE.findall(self.comment)
 
     @property
     def attachments(self):
@@ -687,11 +722,7 @@ def browse():
     >>> b
     '''
     assert_current()
-    browser = os.environ.get('BROWSER')
-    if browser is None:
-        print 'Set $BROWSER first'
-    else:
-        call([browser, CURRENT_CASE.permalink])
+    CURRENT_CASE.browse()
 
 
 @command('new')
@@ -782,31 +813,60 @@ def people():
     print
 
 
-@command('attachment')
-def attachment(*args):
-    '''Download attachment id or list attachments in current case.
+@command('attachments')
+def attachments():
+    '''List attachments in current case.
 
     Example:
-    >>> attachment  # list attachments
+    >>> attachments
+    '''
+    assert_current()
+    if CURRENT_CASE.attachments:
+        print
+        for a in CURRENT_CASE.attachments:
+            print a
+        print
+    else:
+        print 'No attachments.'
+
+
+@command('attachment')
+def attachment(attachment_id):
+    '''Download attachment id.
+
+    Example:
     >>> attachment 1234  # download and view attachment 1234
     '''
     assert_current()
-    if len(args) > 0:
-        id_ = int(args[0])
-        for a in CURRENT_CASE.attachments:
-            if a.id == id_:
-                a.download()
-                break
-        else:
-            assert False, 'Attachment not found in current case'
+    for a in CURRENT_CASE.attachments:
+        if a.id == int(attachment_id):
+            a.download()
+            break
     else:
-        if CURRENT_CASE.attachments:
-            print
-            for a in CURRENT_CASE.attachments:
-                print a
-            print
-        else:
-            print 'No attachments.'
+        assert False, 'Attachment not found in current case'
+
+
+@command('links')
+def links():
+    '''Show all links in current case.'''
+    assert_current()
+    if len(CURRENT_CASE.links) > 0:
+        print
+        for link in CURRENT_CASE.links:
+            print link
+        print
+    else:
+        print 'No links.'
+
+
+@command('link')
+def link(ilink):
+    '''Browse link in current case.'''
+    assert_current()
+    ilink = int(ilink)
+    assert ilink >= 0, 'Negative link index'
+    assert ilink < len(CURRENT_CASE.links), 'No such link'
+    CURRENT_CASE.links[ilink].browse()
 
 
 @command('raw')
