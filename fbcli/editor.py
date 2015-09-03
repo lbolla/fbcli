@@ -135,8 +135,6 @@ class Text(object):
         # Take everything up to sep
         header = '\n'.join(
             takewhile(lambda line: line != self.SEP, lines))
-        # drop SEP
-        lines.next()
         # the rest is body
         body = '\n'.join(lines)
         return header, body
@@ -160,7 +158,7 @@ class Text(object):
     def files(self):
         fs = {}
         for fname in self.meta.get('Files', []):
-            bname = os.path.basename(fname)
+            bname = _encode_for_upload(os.path.basename(fname))
             fs[bname] = open(fname, 'rb')
         return fs
 
@@ -188,3 +186,8 @@ class Text(object):
         if self.nfiles > 0:
             params['Files'] = self.files
         return params
+
+
+def _encode_for_upload(s):
+    '''Remove unsafe characters that seem to break uploads.'''
+    return s.replace(':', '_')

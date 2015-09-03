@@ -59,7 +59,7 @@ white = partial(colorize, '1;37')
 
 
 def status(s):
-    color_for_status = {
+    color_map = {
         'active': green,
         'testing': yellow,
         'needs additional': purple,
@@ -68,7 +68,21 @@ def status(s):
     }
     s_ = s.strip().lower()
 
-    for st, color in color_for_status.iteritems():
+    for st, color in color_map.iteritems():
+        if st in s_:
+            return color(s)
+    return s
+
+
+def priority(s):
+    color_map = {
+        'blocker': lightred,
+        'critical': lightred,
+        'high priority': lightred,
+    }
+    s_ = s.strip().lower()
+
+    for st, color in color_map.iteritems():
         if st in s_:
             return color(s)
     return s

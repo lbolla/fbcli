@@ -1,7 +1,6 @@
 # pylint: disable=W0603,W0621,R0904
 
 from functools import wraps
-from itertools import dropwhile
 from subprocess import call
 import contextlib
 import logging
@@ -414,8 +413,8 @@ class FBBugEvent(FBObj):
     TMPL = Template(
         '''{{ obj.dt }} - {{ obj.person }}
 {% raw ui.white(obj.desc) %}
-{% raw obj.comment %}{% if obj.attachments %}
-{% for a in obj.attachments %}{% raw a %}{% end %}{% end %}
+{% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
+{% raw a %}{% end %}{% end %}
 ''')
 
     def __init__(self, event):
@@ -454,8 +453,9 @@ class FBShortCase(FBObj):
 
     TMPL = Template(
         '''{% raw ui.cyan(str(obj.id).rjust(6)) %} \
-{% raw ui.status(ui.rtrunc(obj.status, 20)) %} \
-{% raw ui.gray(ui.rtrunc(obj.project, 15)) %} \
+{% raw ui.gray(ui.rtrunc(obj.priority, 20)) %} \
+{% raw ui.status(ui.ltrunc(obj.status, 15)) %} \
+{% raw ui.darkgray(ui.rtrunc(obj.project, 15)) %} \
 {% raw ui.blue(obj.title) %}''')
 
     # Keep a history of visited cases, in short form
@@ -488,6 +488,10 @@ class FBShortCase(FBObj):
     def project(self):
         return self._case.sproject.text
 
+    @property
+    def priority(self):
+        return self._case.spriority.text
+
     def __eq__(self, case):
         return self.id == case.id
 
@@ -507,7 +511,7 @@ class FBCaseSearch(FBObj):
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
         cases = []
-        resp = FB.search(q=q, cols="ixBug,sTitle,sStatus,sProject")
+        resp = FB.search(q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority")
         for case in resp.cases.findAll('case'):
             cases.append(FBShortCase.from_xml(case))
         return cls(cases)
