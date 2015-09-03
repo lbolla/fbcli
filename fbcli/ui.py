@@ -55,6 +55,7 @@ lightred = partial(colorize, '1;31')
 lightgreen = partial(colorize, '1;32')
 yellow = partial(colorize, '1;33')
 lightpurple = partial(colorize, '1;35')
+lightcyan = partial(colorize, '1;36')
 white = partial(colorize, '1;37')
 
 
@@ -78,14 +79,31 @@ def priority(s):
     color_map = {
         'blocker': lightred,
         'critical': lightred,
-        'high priority': lightred,
+        'high priority': red,
+        'need to fix soon': red,
+        'need to fix': gray,
+        'fix if time': gray,
+        'for consideration': darkgray,
     }
     s_ = s.strip().lower()
 
     for st, color in color_map.iteritems():
-        if st in s_:
+        if st == s_:
             return color(s)
     return s
+
+
+def _id(color, s):
+    return color('[{}]'.format(s))
+
+
+caseid = partial(_id, lightcyan)
+linkid = partial(_id, lightpurple)
+attachmentid = partial(_id, lightpurple)
+
+
+def title(s):
+    return blue(s)
 
 
 def _get_hw():

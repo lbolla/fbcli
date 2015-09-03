@@ -172,10 +172,10 @@ class FBCase(FBObj):
 
     TMPL = Template('''
 {{ ui.hl1 }}
-[{% raw ui.cyan(obj.id) %}] ({% raw obj.project %}/{% raw obj.area %}) \
-{% raw ui.blue(obj.title) %}
+{% raw ui.caseid(obj.id) %} ({% raw obj.project %}/{% raw obj.area %}) \
+{% raw ui.title(obj.title) %}
 {% raw ui.status(obj.status) %} - \
-{% raw ui.lightgreen(obj.priority) %} - \
+{% raw ui.priority(obj.priority) %} - \
 Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
@@ -363,7 +363,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 class FBLink(FBObj):
 
     TMPL = Template(
-        '''[{{ ui.lightpurple(obj.id) }}] {{ ui.purple(obj.url) }}''')
+        '''{{ ui.linkid(obj.id) }} {{ ui.purple(obj.url) }}''')
 
     def __init__(self, id_, url):
         self.id = id_
@@ -376,7 +376,7 @@ class FBLink(FBObj):
 class FBAttachment(FBObj):
 
     TMPL = Template(
-        '''[{{ ui.lightpurple(obj.id) }}] {{ ui.purple(obj.filename) }}''')
+        '''{{ ui.attachmentid(obj.id) }} {{ ui.purple(obj.filename) }}''')
 
     def __init__(self, attachment):
         self._attachment = attachment
@@ -452,11 +452,11 @@ class FBBugEvent(FBObj):
 class FBShortCase(FBObj):
 
     TMPL = Template(
-        '''{% raw ui.cyan(str(obj.id).rjust(6)) %} \
-{% raw ui.gray(ui.rtrunc(obj.priority, 20)) %} \
+        '''{% raw ui.caseid(obj.id).rjust(6) %} \
+{% raw ui.priority(ui.rtrunc(obj.priority, 20)) %} \
 {% raw ui.status(ui.ltrunc(obj.status, 15)) %} \
 {% raw ui.darkgray(ui.rtrunc(obj.project, 15)) %} \
-{% raw ui.blue(obj.title) %}''')
+{% raw ui.title(obj.title) %}''')
 
     # Keep a history of visited cases, in short form
     HISTORY = History()
@@ -519,9 +519,8 @@ class FBCaseSearch(FBObj):
 
 class FBProject(FBObj):
 
-    TMPL = Template(
-        '''{% raw ui.cyan(str(obj.id).rjust(4)) %} - \
-{% raw ui.rtrunc(obj.name, 30) %} {% raw ui.darkgray(obj.owner) %}''')
+    TMPL = Template('''{% raw ui.rtrunc(obj.name, 30) %} \
+{% raw ui.darkgray(obj.owner) %}''')
 
     def __init__(self, project):
         self._project = project
@@ -541,9 +540,7 @@ class FBProject(FBObj):
 
 class FBArea(FBObj):
 
-    TMPL = Template(
-        '''{% raw ui.cyan(str(obj.id).rjust(4)) %} - \
-{% raw ui.darkgray(ui.rtrunc(obj.project, 30)) %} \
+    TMPL = Template('''{% raw ui.darkgray(ui.rtrunc(obj.project, 30)) %} \
 {% raw ui.ltrunc(obj.name, 30) %}''')
 
     def __init__(self, area):

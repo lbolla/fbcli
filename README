@@ -33,9 +33,11 @@ Run tests with:
 - edit
 - list unread
 - simplify creation by listing projects/areas/persons
-- define aliases
+  - use editor's autocompletion
+- define aliases? and persist them
 - "mycases" to show project, area and priority
+- handle milestones, aka "sFixFor"
+- handle categories, aka "sCategory" - bug, feature, task, etc.
+- possibly load project/areas/people on startup?
 - tty screencast
     - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
-- handle milestones
-
