@@ -470,7 +470,7 @@ class FBBugEvent(FBObj):
 class FBShortCase(FBObj):
 
     TMPL = Template(
-        '''{% raw ui.caseid(obj.id).rjust(6) %} \
+        '''{% raw ui.caseid(obj.id, rjust=8) %} \
 {% raw ui.priority(ui.rtrunc(obj.priority, 20)) %} \
 {% raw ui.status(ui.ltrunc(obj.status, 15)) %} \
 {% raw ui.darkgray(ui.rtrunc(obj.project, 15)) %} \

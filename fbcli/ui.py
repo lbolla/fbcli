@@ -93,8 +93,13 @@ def priority(s):
     return s
 
 
-def _id(color, s):
-    return color('[{}]'.format(s))
+def _id(color, s, ljust=None, rjust=None):
+    id_ = '[{}]'.format(s)
+    if ljust is not None:
+        id_ = id_.ljust(ljust)
+    if rjust is not None:
+        id_ = id_.rjust(rjust)
+    return color(id_)
 
 
 caseid = partial(_id, lightcyan)
