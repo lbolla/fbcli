@@ -1,0 +1,9 @@
+- generic edit
+- list unread
+- simplify creation by listing projects/areas/persons
+    - use editor's autocompletion
+    - possibly load project/areas/people on startup and cache them to help autocompletion?
+- define aliases? and persist them
+- handle milestones, aka "sFixFor"
+- handle categories, aka "sCategory" - bug, feature, task, etc.
+- only check allowed actions on case

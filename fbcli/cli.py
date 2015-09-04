@@ -754,6 +754,11 @@ def browse():
 def new():
     '''Create a new ticket.
 
+    $EDITOR will be opened and used to edit the case. The case
+    template has an "header" in .yaml format. "Title", "Project",
+    "Area", "Files", etc. are all available fields.
+    The body of the ticket is separated by "---".
+
     Example:
     >>> new
     '''
