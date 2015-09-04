@@ -31,6 +31,7 @@ URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r]*')
 
 
 def set_current_case(case):
+    '''Set case as current and refresh history.'''
     global CURRENT_CASE
     CURRENT_CASE = case
     FBShortCase.HISTORY.push(case)
@@ -159,6 +160,7 @@ class History(FBObj):
         self._history = []
 
     def push(self, case):
+        '''Add new history item. Remove first if it exists.'''
         scase = FBShortCase.from_case(case)
         if scase in self._history:
             self._history.remove(scase)
@@ -194,6 +196,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     def reset(self):
         self._case = self._get_raw(self.id)
+        set_current_case(self)
 
     @classmethod
     def get_by_id(cls, ixBug):
