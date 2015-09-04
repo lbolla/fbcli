@@ -363,7 +363,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 class FBLink(FBObj):
 
     TMPL = Template(
-        '''{{ ui.linkid(obj.id) }} {{ ui.purple(obj.url) }}''')
+        '''{{ ui.linkid(obj.id) }} {% raw ui.purple(obj.url) %}''')
 
     def __init__(self, id_, url):
         self.id = id_
@@ -658,7 +658,7 @@ def reactivate():
     '''Reactivate the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment()
+        params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reactivate(**params)
 
 
@@ -667,7 +667,7 @@ def resolve():
     '''Resolve the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment()
+        params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.resolve(**params)
 
 
@@ -676,7 +676,7 @@ def reopen():
     '''Reopen the current ticket.'''
     assert_current()
     with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment()
+        params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reopen(**params)
 
 
@@ -694,7 +694,7 @@ def assign(*args):
     assert_current()
     person = ' '.join(args)
     with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment()
+        params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.assign(person, **params)
 
 
@@ -806,6 +806,13 @@ def areas():
     print
 
 
+def _people():
+    result = FB.listPeople()
+    return sorted(
+        [FBPerson(a) for a in result.findAll('person')],
+        key=lambda p: (p.fullname, p.email))
+
+
 @command('people')
 def people():
     '''List people.
@@ -813,10 +820,8 @@ def people():
     Example:
     >>> people
     '''
-    result = FB.listPeople()
-    people = [FBPerson(a) for a in result.findAll('person')]
     print
-    for person in sorted(people, key=lambda p: (p.fullname, p.email)):
+    for person in _people():
         print person
     print
 

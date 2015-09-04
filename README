@@ -41,3 +41,4 @@ Run tests with:
 - possibly load project/areas/people on startup?
 - tty screencast
     - http://unix.stackexchange.com/questions/35279/typescript-terminal-recording-into-video
+- only check allowed actions on case
