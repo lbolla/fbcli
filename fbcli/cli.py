@@ -300,6 +300,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return self._case.tags.text.split(',')
 
     @property
+    def operations(self):
+        ops = self._case.case.get('operations')
+        return ops.split(',') if ops else []
+
+    @property
     def permalink(self):
         return FB.full_url('f/cases/{}'.format(self.id))
 
@@ -317,31 +322,40 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
                 del kwargs['sEvent']
         return kwargs
 
+    def _assert_operation(self, op):
+        assert op in self.operations, 'Invalid operation {}: not in {}'.format(
+            op, self.operations)
+
     def edit(self, **kwargs):
+        self._assert_operation('edit')
         FB.edit(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def resolve(self, **kwargs):
+        self._assert_operation('resolve')
         FB.resolve(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def reopen(self, **kwargs):
+        self._assert_operation('reopen')
         FB.reopen(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def reactivate(self, **kwargs):
+        self._assert_operation('reactivate')
         FB.reactivate(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def assign(self, person, **kwargs):
+        self._assert_operation('assign')
         FB.assign(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             sPersonAssignedTo=person,
@@ -349,6 +363,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.reset()
 
     def close(self):
+        self._assert_operation('close')
         FB.close(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
         self.reset()
@@ -890,13 +905,31 @@ def link(ilink):
     CURRENT_CASE.links[ilink].browse()
 
 
+@command('operations')
+def operations():
+    '''Show valid operations that can be done on current ticket.'''
+    assert_current()
+    print 'Valid operations: {}\nNot all implemented, yet.'.format(
+        ' '.join(CURRENT_CASE.operations))
+
+
 @command('raw')
 def raw(*args):
     '''Execute a command on FB API and return raw result.
 
+    Example:
+    >>> raw search q=1  # executes FB.search(q=1)
+
     Mostly used for debugging.'''
-    cmd, args = args[0], args[1:]
-    result = getattr(FB, cmd)(*args)
+    cmd, args_ = args[0], args[1:]
+    args, kwargs = [], {}
+    for arg in args_:
+        if '=' in arg:
+            k, v = arg.split('=', 1)
+            kwargs[k] = v
+        else:
+            args.append(arg)
+    result = getattr(FB, cmd)(*args, **kwargs)
     print result.prettify()
 
 

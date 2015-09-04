@@ -6,4 +6,3 @@
 - define aliases? and persist them
 - handle milestones, aka "sFixFor"
 - handle categories, aka "sCategory" - bug, feature, task, etc.
-- only check allowed actions on case
