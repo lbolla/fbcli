@@ -322,40 +322,40 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
                 del kwargs['sEvent']
         return kwargs
 
-    def _assert_operation(self, op):
+    def assert_operation(self, op):
         assert op in self.operations, 'Invalid operation {}: not in {}'.format(
             op, self.operations)
 
     def edit(self, **kwargs):
-        self._assert_operation('edit')
+        self.assert_operation('edit')
         FB.edit(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def resolve(self, **kwargs):
-        self._assert_operation('resolve')
+        self.assert_operation('resolve')
         FB.resolve(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def reopen(self, **kwargs):
-        self._assert_operation('reopen')
+        self.assert_operation('reopen')
         FB.reopen(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def reactivate(self, **kwargs):
-        self._assert_operation('reactivate')
+        self.assert_operation('reactivate')
         FB.reactivate(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
     def assign(self, person, **kwargs):
-        self._assert_operation('assign')
+        self.assert_operation('assign')
         FB.assign(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             sPersonAssignedTo=person,
@@ -363,7 +363,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.reset()
 
     def close(self):
-        self._assert_operation('close')
+        self.assert_operation('close')
         FB.close(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
         self.reset()
@@ -674,7 +674,7 @@ def close():
 @command('reactivate')
 def reactivate():
     '''Reactivate the current ticket.'''
-    assert_current()
+    assert_operation('reactivate')
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reactivate(**params)
@@ -683,7 +683,7 @@ def reactivate():
 @command('resolve')
 def resolve():
     '''Resolve the current ticket.'''
-    assert_current()
+    assert_operation('resolve')
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.resolve(**params)
@@ -692,7 +692,7 @@ def resolve():
 @command('reopen')
 def reopen():
     '''Reopen the current ticket.'''
-    assert_current()
+    assert_operation('reopen')
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reopen(**params)
@@ -709,7 +709,7 @@ def assign(*args):
     >>> assign <person>
     >>> assign Lorenzo Bolla
     '''
-    assert_current()
+    assert_operation('assign')
     person = ' '.join(args)
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
@@ -988,6 +988,11 @@ def read_():
 
 def assert_current():
     assert CURRENT_CASE is not None, 'Pick a case first!'
+
+
+def assert_operation(op):
+    assert_current()
+    CURRENT_CASE.assert_operation(op)
 
 
 def exec_(cmd, args):
