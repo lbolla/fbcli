@@ -615,13 +615,13 @@ def help_(*args):
     >>> help logon
     '''
     if len(args) == 0:
-        print 'Fogbugz CLI Help'
         print
         print 'Available commands:'
         for name, cmd in sorted(COMMANDS.iteritems()):
             print '{} - {}'.format(name.rjust(12), cmd.desc())
         print
         print 'Type "help <cmd>" for more.'
+        print
     else:
         name = args[0]
         print COMMANDS[name].help()
@@ -815,14 +815,18 @@ def projects():
 
 
 @command('areas')
-def areas():
+def areas(*args):
     '''List areas.
 
     Example:
-    >>> areas
+    >>> areas  # List all areas
+    >>> areas devops  # List areas in devops project
     '''
     result = FB.listAreas()
     areas = [FBArea(a) for a in result.findAll('area')]
+    if len(args) > 0:
+        project = args[0].lower()
+        areas = [a for a in areas if a.project.lower() == project]
     print
     for area in sorted(areas, key=lambda a: (a.project, a.name)):
         print area
@@ -965,9 +969,17 @@ def quit_():
     sys.exit(0)
 
 
+def welcome():
+    print '''
+Welcome to FogBugz CLI!
+
+Type "help" to get started.
+'''
+
+
 def read_():
     cmdline = raw_input(get_prompt())
-    if not cmdline:
+    if not cmdline or cmdline.startswith(editor.COMMENT_CHAR):
         return None, None
     tokens = cmdline.split()
     cmd, args = tokens[0], tokens[1:]
@@ -1009,6 +1021,8 @@ def main():
     args = parse_command_line()
 
     logon()
+    welcome()
+
     if args:
         with exec_ctx():
             exec_(args[0], args[1:])
