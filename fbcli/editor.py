@@ -173,6 +173,7 @@ class Text(object):
             sProject=meta.get('Project'),
             sArea=meta.get('Area'),
             sPriority=meta.get('Priority'),
+            sTags=','.join(meta.get('Tags', [])),
             sEvent=self.body,
         )
         if self.nfiles > 0:
@@ -182,6 +183,7 @@ class Text(object):
     def get_params_for_comment(self):
         params = dict(
             sEvent=self.body,
+            sTags=','.join(self.meta.get('Tags', [])),
         )
         if self.nfiles > 0:
             params['Files'] = self.files
