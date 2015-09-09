@@ -362,10 +362,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             **self._clean_kwargs(kwargs))
         self.reset()
 
-    def close(self):
+    def close(self, **kwargs):
         self.assert_operation('close')
         FB.close(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id)
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **self._clean_kwargs(kwargs))
         self.reset()
 
     def browse(self):
@@ -668,7 +669,9 @@ def reload_():
 def close():
     '''Close the current ticket.'''
     assert_current()
-    CURRENT_CASE.close()
+    with editor.maybe_writing('Add a comment?') as text:
+        params = text.get_params_for_comment() if text else {}
+        CURRENT_CASE.close(**params)
 
 
 @command('reactivate')
