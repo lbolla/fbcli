@@ -101,6 +101,36 @@ class FBObj(object):
         return self.to_string()
 
 
+class FBStatus(FBObj):
+
+    CACHE = set()
+
+    def __init__(self, status):
+        self._status = status
+        self.CACHE.add(self)
+
+    @classmethod
+    def get_by_name(cls, name):
+        if not cls.CACHE:
+            cls.get_all()
+        for s in cls.CACHE:
+            if name == s.name:
+                return s
+
+    @staticmethod
+    def get_all():
+        result = FB.listStatuses()
+        return [FBStatus(a) for a in result.findAll('status')]
+
+    @property
+    def id(self):
+        return int(self._status.ixstatus.text)
+
+    @property
+    def name(self):
+        return self._status.sstatus.text
+
+
 class FBPerson(FBObj):
 
     TMPL = Template('''{% raw obj.fullname %} <{% raw obj.email %}>''')
@@ -136,6 +166,13 @@ class FBPerson(FBObj):
                 return p
         p = cls._get(ixPerson=person_id)
         return p
+
+    @staticmethod
+    def get_all():
+        result = FB.listPeople()
+        return sorted(
+            [FBPerson(a) for a in result.findAll('person')],
+            key=lambda p: (p.fullname, p.email))
 
     @property
     def id(self):
@@ -511,6 +548,10 @@ class FBShortCase(FBObj):
     def priority(self):
         return self._case.spriority.text
 
+    @property
+    def priority_id(self):
+        return int(self._case.ixpriority.text)
+
     def __eq__(self, case):
         return self.id == case.id
 
@@ -524,13 +565,15 @@ class FBCaseSearch(FBObj):
     logger = logging.getLogger('fb.search')
 
     def __init__(self, shortcases):
-        self.shortcases = shortcases
+        self.shortcases = sorted(
+            shortcases, key=lambda p: (p.priority_id, p.project, p.id))
 
     @classmethod
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
         cases = []
-        resp = FB.search(q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority")
+        resp = FB.search(
+            q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority")
         for case in resp.cases.findAll('case'):
             cases.append(FBShortCase.from_xml(case))
         return cls(cases)
@@ -681,6 +724,16 @@ def reactivate():
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reactivate(**params)
+
+
+@command('wontfix')
+def wontfix():
+    '''Resolve the current ticket as "won't fix".'''
+    assert_operation('resolve')
+    with editor.maybe_writing('Add a comment?') as text:
+        params = text.get_params_for_comment() if text else {}
+        params['ixstatus'] = FBStatus.get_by_name("Resolved (Won't Fix)").id
+        CURRENT_CASE.resolve(**params)
 
 
 @command('resolve')
@@ -836,13 +889,6 @@ def areas(*args):
     print
 
 
-def _people():
-    result = FB.listPeople()
-    return sorted(
-        [FBPerson(a) for a in result.findAll('person')],
-        key=lambda p: (p.fullname, p.email))
-
-
 @command('people')
 def people():
     '''List people.
@@ -851,7 +897,7 @@ def people():
     >>> people
     '''
     print
-    for person in _people():
+    for person in FBPerson.get_all():
         print person
     print
 
