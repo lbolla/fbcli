@@ -23,6 +23,7 @@ from fbcli import ui
 FB = fb.FBClient()
 CURRENT_CASE = None
 CURRENT_USER = None
+LAST_SEARCH = None
 
 COMMANDS = {}
 
@@ -42,6 +43,11 @@ def set_current_user(user):
     global CURRENT_USER
     CURRENT_USER = user
     return user
+
+
+def set_last_search(search):
+    global LAST_SEARCH
+    LAST_SEARCH = search
 
 
 def command(*names):
@@ -567,6 +573,7 @@ class FBCaseSearch(FBObj):
     def __init__(self, shortcases):
         self.shortcases = sorted(
             shortcases, key=lambda p: (p.priority_id, p.project, p.id))
+        set_last_search(self)
 
     @classmethod
     def search(cls, q):
@@ -990,6 +997,13 @@ def raw(*args):
 def history():
     '''Show the most recently viewed cases, most recent first'''
     print FBShortCase.HISTORY
+
+
+@command('lastsearch')
+def lastsearch():
+    '''Show the last search'''
+    if LAST_SEARCH:
+        print LAST_SEARCH
 
 
 @command('ipython')

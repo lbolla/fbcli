@@ -133,11 +133,13 @@ def ltrunc(s, n):
 
 
 def completer(text, state):
-    from fbcli.cli import COMMANDS, FBShortCase, FBPerson
+    from fbcli.cli import COMMANDS, LAST_SEARCH, FBShortCase, FBPerson
 
     all_options = COMMANDS.keys()
     all_options += [str(case.id) for case in FBShortCase.HISTORY]
     all_options += [person.fullname for person in FBPerson.CACHE]
+    if LAST_SEARCH:
+        all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
     options = [x for x in all_options if x.startswith(text)]
     try:
