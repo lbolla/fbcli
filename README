@@ -1,4 +1,4 @@
-* FogBugz Command Line Interface
+# FogBugz Command Line Interface
 
 Install with:
 
@@ -6,22 +6,22 @@ Install with:
 
 Run with:
 
-    $> fb
-    $> fb --logging=debug  # verbose
-    $> fb --help  # for more options
+    fb
+    fb --logging=debug  # verbose
+    fb --help  # for more options
 
 Get help from `fb`:
 
     >>> help
     >>> help <command>  # for more
 
-* Development
+# Development
 
 Run tests with:
 
-   >>> python setup.py test
+    >>> python setup.py test
 
-* References
+# References
 
 - FogBugzPy: https://developers.fogbugz.com/?W199
 - FogBugz XML API:
