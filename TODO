@@ -6,3 +6,6 @@
 - define aliases? and persist them
 - handle milestones, aka "sFixFor"
 - handle categories, aka "sCategory" - bug, feature, task, etc.
+- edit existing bug events
+- change current case priority
+- Py3 compatible
