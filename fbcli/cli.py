@@ -809,13 +809,16 @@ def search(*args):
 
 
 @command('mycases')
-def mycases():
+def mycases(*args):
     '''List the cases of the logged in user.
 
     Example:
     >>> mycases
+    >>> mycases project:brandindex
     '''
     q = 'assignedto:"{}" status:Active'.format(CURRENT_USER.fullname)
+    if args:
+        q += ' ' + ' '.join(args)
     search(q)
 
 
