@@ -743,6 +743,16 @@ def wontfix():
         CURRENT_CASE.resolve(**params)
 
 
+@command('duplicate', 'dup')
+def duplicate():
+    '''Resolve the current ticket as "duplicate".'''
+    assert_operation('resolve')
+    with editor.maybe_writing('Add a comment?') as text:
+        params = text.get_params_for_comment() if text else {}
+        params['ixstatus'] = FBStatus.get_by_name("Resolved (Duplicate)").id
+        CURRENT_CASE.resolve(**params)
+
+
 @command('resolve')
 def resolve():
     '''Resolve the current ticket.'''
