@@ -28,7 +28,7 @@ LAST_SEARCH = None
 COMMANDS = {}
 
 # Poor man HTML link regex
-URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r]*')
+URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\}]*')
 
 
 def set_current_case(case):
