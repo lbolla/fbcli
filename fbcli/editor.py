@@ -157,7 +157,9 @@ class Text(object):
     @property
     def files(self):
         fs = {}
-        for fname in self.meta.get('Files', []):
+        for fname_ in self.meta.get('Files', []):
+            # Handle paths like ~/README.txt
+            fname = os.path.expanduser(fname_)
             bname = _encode_for_upload(os.path.basename(fname))
             fs[bname] = open(fname, 'rb')
         return fs
