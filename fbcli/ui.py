@@ -1,6 +1,7 @@
 from functools import partial, wraps
 import atexit
 import fcntl
+import HTMLParser
 import os
 import readline
 import struct
@@ -166,3 +167,7 @@ def init_readline():
     ignoring_IOerror(readline.read_history_file)(histfile)
     atexit.register(ignoring_IOerror(readline.write_history_file), histfile)
     del histfile
+
+
+def html_unescape(s):
+    return HTMLParser.HTMLParser().unescape(s)

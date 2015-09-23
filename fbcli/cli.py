@@ -474,7 +474,7 @@ class FBBugEvent(FBObj):
 
     TMPL = Template(
         '''{{ obj.dt }} - {{ obj.person }}
-{% raw ui.white(obj.desc) %}
+{% raw ui.white(ui.html_unescape(obj.desc)) %}
 {% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
 {% raw a %}{% end %}{% end %}
 ''')
