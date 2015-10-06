@@ -29,7 +29,14 @@ class FBClient(object):
         self._fburl = from_env_or_ask('FBURL', 'Fogbugz URL: ')
         self._fbuser = from_env_or_ask('FBUSER', 'Username: ')
         self._fbpass = from_env_or_ask('FBPASS', 'Password: ', True)
-        self._fb = fogbugz.FogBugz(self._fburl)
+        self.__fb = None
+
+    @property
+    def _fb(self):
+        # Get connection lazily, to simplify testing
+        if self.__fb is None:
+            self.__fb = fogbugz.FogBugz(self._fburl)
+        return self.__fb
 
     def retrying(self, f):
 

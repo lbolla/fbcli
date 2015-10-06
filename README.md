@@ -1,5 +1,8 @@
 # FogBugz Command Line Interface
 
+[<img src="https://travis-ci.org/lbolla/fbcli.svg?branch=master">](https://travis-ci.org/lbolla/fbcli)
+
+
 Install with:
 
     $> python setup.py install
