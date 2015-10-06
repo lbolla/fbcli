@@ -9,3 +9,4 @@
 - edit existing bug events
 - change current case priority
 - Py3 compatible
+- Find closest project/area/priority/assignee with Levenshtein
