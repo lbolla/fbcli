@@ -1,4 +1,4 @@
-# pylint: disable=W0603,W0621,R0904
+# pylint: disable=trailing-whitespace,W0603,W0621,R0904
 
 from functools import wraps
 from subprocess import call
@@ -13,6 +13,7 @@ import urllib2
 
 from tornado.template import Template
 from tornado.options import parse_command_line
+import yaml
 
 from fbcli import browser
 from fbcli import errors
@@ -29,6 +30,8 @@ COMMANDS = {}
 
 # Poor man HTML link regex
 URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\}]*')
+
+logger = logging.getLogger('fb.cli')
 
 
 def set_current_case(case):
@@ -857,9 +860,9 @@ def new():
     >>> new
     '''
 
-    tmpl = Template('''Title:
-Project:
-Area:
+    tmpl = Template('''Title: <title>
+Project: <project>
+Area: <area>
 Assign to: {{ user.fullname }}
 Priority: Need to fix
 
@@ -867,7 +870,7 @@ Priority: Need to fix
 
 <Insert description here>
 
-''')
+''')  # noqa
 
     header = tmpl.generate(user=CURRENT_USER)
     with editor.writing(header=header) as text:
@@ -1082,19 +1085,25 @@ def exec_(cmd, args):
         return f(*args)
 
 
+def _format_exception(exc):
+    if isinstance(exc, errors.Aborted):
+        print 'Aborted.'
+    elif yaml.error.YAMLError:
+        logger.exception('ERROR in case header: must be valid YAML')
+    else:
+        logger.exception('ERROR')
+
+
 @contextlib.contextmanager
 def exec_ctx():
-    logger = logging.getLogger('fb.main')
     try:
         yield
     except EOFError:
         quit_()
-    except errors.Aborted:
-        print 'Aborted.'
     except KeyboardInterrupt:
         pass
-    except Exception:
-        logger.exception('ERROR')
+    except Exception as exc:
+        _format_exception(exc)
 
 
 def main():

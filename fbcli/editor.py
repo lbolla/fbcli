@@ -1,4 +1,3 @@
-from StringIO import StringIO
 from itertools import takewhile
 from subprocess import call
 import contextlib
@@ -143,8 +142,7 @@ class Text(object):
     def meta(self):
         if self._header is None:
             return {}
-        buf = StringIO(self._header)
-        return yaml.load(buf)
+        return yaml.load(self._header)
 
     @property
     def body(self):
