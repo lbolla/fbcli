@@ -30,3 +30,4 @@ Run tests with:
 - FogBugz XML API:
   - https://developers.fogbugz.com/default.asp?W194
   - http://help.fogcreek.com/8202/xml-api
+- Tutorial: https://www.youtube.com/watch?v=2tunk7HD0GY
