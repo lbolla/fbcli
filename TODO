@@ -10,3 +10,11 @@
 - change current case priority
 - Py3 compatible
 - Find closest project/area/priority/assignee with Levenshtein
+- fbcli.ini to define:
+  - aliases
+  - mycases format
+  - mycases ordering
+
+BUG
+
+- "close" does not check valid operations
