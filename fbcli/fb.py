@@ -3,6 +3,8 @@ import getpass
 import logging
 import os
 
+from six.moves import input
+
 import fogbugz
 
 
@@ -15,10 +17,10 @@ def from_env_or_ask(k, question, is_password=False):
     what = os.environ.get(k)
     if what is not None:
         return what
-    print 'You can skip this question by setting ${}'.format(k)
+    print('You can skip this question by setting ${}'.format(k))
     if is_password:
         return getpass.getpass()
-    return raw_input(question)
+    return input(question)
 
 
 class FBClient(object):

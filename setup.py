@@ -18,6 +18,7 @@ setup(
         'fogbugz',
         'tornado>=4,<5dev',
         'pyyaml>=3,<4dev',
+        'six',
     ],
     test_suite='tests',
     entry_points={

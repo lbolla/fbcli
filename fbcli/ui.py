@@ -8,6 +8,8 @@ import struct
 import sys
 import termios
 
+import six
+
 
 def colorize(color, s, readline_safe=False):
     if _supports_color(sys.stdout):
@@ -19,8 +21,8 @@ def colorize(color, s, readline_safe=False):
             color_close = '\001' + color_close + '\002'
     else:
         color_open = color_close = ''
-    if not isinstance(s, basestring):
-        s = unicode(s)
+    if not isinstance(s, six.string_types):
+        s = six.text_type(s)
     return color_open + s.encode('utf-8') + color_close
 
 
