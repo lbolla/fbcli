@@ -10,10 +10,9 @@ import os
 import re
 import sys
 import tempfile
-import urlparse
-import urllib2
 
 from six.moves import input
+from six.moves import urllib
 
 from tornado.template import Template
 from tornado.options import parse_command_line
@@ -452,8 +451,8 @@ class FBAttachment(FBObj):
 
     @property
     def id(self):
-        url = urlparse.urlparse(self.url)
-        q = urlparse.parse_qs(url.query)
+        url = urllib.parse.urlparse(self.url)
+        q = urllib.parse.parse_qs(url.query)
         return int(q['ixAttachment'][0])
 
     @property
@@ -467,7 +466,7 @@ class FBAttachment(FBObj):
 
     def download(self):
         url = self.url + '&token={}'.format(FB.current_token)
-        r = urllib2.urlopen(url)
+        r = urllib.request.urlopen(url)
         assert r.getcode() == 200, 'Failed to download {}'.format(url)
 
         fname = os.path.join(tempfile.gettempdir(), self.filename)

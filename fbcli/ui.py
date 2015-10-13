@@ -1,7 +1,6 @@
 from functools import partial, wraps
 import atexit
 import fcntl
-import HTMLParser
 import os
 import readline
 import struct
@@ -9,6 +8,7 @@ import sys
 import termios
 
 import six
+from six.moves import html_parser
 
 
 def colorize(color, s, readline_safe=False):
@@ -172,4 +172,4 @@ def init_readline():
 
 
 def html_unescape(s):
-    return HTMLParser.HTMLParser().unescape(s)
+    return html_parser.HTMLParser().unescape(s)
