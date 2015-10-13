@@ -4,6 +4,8 @@ import contextlib
 import os
 import tempfile
 
+from six.moves import input
+
 import yaml
 
 from fbcli import errors
@@ -70,7 +72,7 @@ def _write(header=DEFAULT_HEADER):
 
 
 def yes_or_no(question):
-    ans = raw_input(question + ' [Y/n] ')
+    ans = input(question + ' [Y/n] ')
     if ans.lower() in ['', 'y', 'yes']:
         return YES
     return NO

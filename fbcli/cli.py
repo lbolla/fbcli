@@ -13,6 +13,8 @@ import tempfile
 import urlparse
 import urllib2
 
+from six.moves import input
+
 from tornado.template import Template
 from tornado.options import parse_command_line
 import yaml
@@ -1059,7 +1061,7 @@ Type "help" to get started.
 
 
 def read_():
-    cmdline = raw_input(get_prompt())
+    cmdline = input(get_prompt())
     if not cmdline or cmdline.startswith(editor.COMMENT_CHAR):
         return None, None
     tokens = cmdline.split()
