@@ -1,5 +1,7 @@
 # pylint: disable=trailing-whitespace,W0603,W0621,R0904
 
+from __future__ import print_function
+
 from functools import wraps
 from subprocess import call
 import contextlib
@@ -469,7 +471,7 @@ class FBAttachment(FBObj):
         fname = os.path.join(tempfile.gettempdir(), self.filename)
         with open(fname, 'wb') as fid:
             fid.write(r.read())
-        print 'Saved to {}'.format(fname)
+        print('Saved to', fname)
         xdg_open(fname)
 
 
@@ -669,16 +671,16 @@ def help_(*args):
     >>> help logon
     '''
     if len(args) == 0:
-        print
-        print 'Available commands:'
+        print()
+        print('Available commands:')
         for name, cmd in sorted(COMMANDS.iteritems()):
-            print '{} - {}'.format(name.rjust(12), cmd.desc())
-        print
-        print 'Type "help <cmd>" for more.'
-        print
+            print('{} - {}'.format(name.rjust(12), cmd.desc()))
+        print()
+        print('Type "help <cmd>" for more.')
+        print()
     else:
         name = args[0]
-        print COMMANDS[name].help()
+        print(COMMANDS[name].help())
 
 
 @command('whoami')
@@ -688,7 +690,7 @@ def whoami():
     Example:
     >>> whoami
     '''
-    print CURRENT_USER
+    print(CURRENT_USER)
 
 
 @command('show', 's')
@@ -701,10 +703,10 @@ def show(ixBug=None):
     '''
     if ixBug is None:
         assert_current()
-        print CURRENT_CASE
+        print(CURRENT_CASE)
     else:
         case = FBCase.get_by_id(int(ixBug))
-        print case
+        print(case)
 
 
 @command('reload', 'r')
@@ -818,7 +820,7 @@ def search(*args):
     '''
     q = ' '.join(args)
     rs = FBCaseSearch.search(q)
-    print rs
+    print(rs)
 
 
 @command('mycases')
@@ -887,10 +889,10 @@ def projects():
     >>> projects
     '''
     result = FB.listProjects()
-    print
+    print()
     for pxml in result.findAll('project'):
-        print FBProject(pxml)
-    print
+        print(FBProject(pxml))
+    print()
 
 
 @command('areas')
@@ -906,10 +908,10 @@ def areas(*args):
     if len(args) > 0:
         project = args[0].lower()
         areas = [a for a in areas if a.project.lower() == project]
-    print
+    print()
     for area in sorted(areas, key=lambda a: (a.project, a.name)):
-        print area
-    print
+        print(area)
+    print()
 
 
 @command('people')
@@ -919,10 +921,10 @@ def people():
     Example:
     >>> people
     '''
-    print
+    print()
     for person in FBPerson.get_all():
-        print person
-    print
+        print(person)
+    print()
 
 
 @command('attachments')
@@ -934,12 +936,12 @@ def attachments():
     '''
     assert_current()
     if CURRENT_CASE.attachments:
-        print
+        print()
         for a in CURRENT_CASE.attachments:
-            print a
-        print
+            print(a)
+        print()
     else:
-        print 'No attachments.'
+        print('No attachments.')
 
 
 @command('attachment')
@@ -963,12 +965,12 @@ def links():
     '''Show all links in current case.'''
     assert_current()
     if len(CURRENT_CASE.links) > 0:
-        print
+        print()
         for link in CURRENT_CASE.links:
-            print link
-        print
+            print(link)
+        print()
     else:
-        print 'No links.'
+        print('No links.')
 
 
 @command('link')
@@ -985,8 +987,8 @@ def link(ilink):
 def operations():
     '''Show valid operations that can be done on current ticket.'''
     assert_current()
-    print 'Valid operations: {}\nNot all implemented, yet.'.format(
-        ' '.join(CURRENT_CASE.operations))
+    print('Valid operations: {}\nNot all implemented, yet.'.format(
+        ' '.join(CURRENT_CASE.operations)))
 
 
 @command('raw')
@@ -1006,20 +1008,20 @@ def raw(*args):
         else:
             args.append(arg)
     result = getattr(FB, cmd)(*args, **kwargs)
-    print result.prettify()
+    print(result.prettify())
 
 
 @command('history', 'hist', 'h')
 def history():
     '''Show the most recently viewed cases, most recent first'''
-    print FBShortCase.HISTORY
+    print(FBShortCase.HISTORY)
 
 
 @command('lastsearch')
 def lastsearch():
     '''Show the last search'''
     if LAST_SEARCH:
-        print LAST_SEARCH
+        print(LAST_SEARCH)
 
 
 @command('ipython')
@@ -1044,16 +1046,16 @@ def quit_():
     Example:
     >>> quit
     '''
-    print 'Bye!'
+    print('Bye!')
     sys.exit(0)
 
 
 def welcome():
-    print '''
+    print('''
 Welcome to FogBugz CLI!
 
 Type "help" to get started.
-'''
+''')
 
 
 def read_():
@@ -1087,7 +1089,7 @@ def exec_(cmd, args):
 
 def _format_exception(exc):
     if isinstance(exc, errors.Aborted):
-        print 'Aborted.'
+        print('Aborted.')
     elif yaml.error.YAMLError:
         logger.exception('ERROR in case header: must be valid YAML')
     else:
