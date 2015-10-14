@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from fbcli import cli
 
@@ -15,7 +15,7 @@ def get_fixture(what):
     with open(os.path.join(FIXTURE_DIR, what), 'r') as fid:
         if what.endswith('.xml'):
             # Soup
-            return BeautifulSoup(fid.read())
+            return BeautifulSoup(fid.read(), 'xml')
         else:
             # Raw
             return fid.read()

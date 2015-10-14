@@ -137,11 +137,11 @@ class FBStatus(FBObj):
 
     @property
     def id(self):
-        return int(self._status.ixstatus.text)
+        return int(self._status.ixstatus.get_text(strip=True))
 
     @property
     def name(self):
-        return self._status.sstatus.text
+        return self._status.sstatus.get_text(strip=True)
 
 
 class FBPerson(FBObj):
@@ -189,15 +189,15 @@ class FBPerson(FBObj):
 
     @property
     def id(self):
-        return int(self._person.ixperson.text)
+        return int(self._person.ixperson.get_text(strip=True))
 
     @property
     def fullname(self):
-        return self._person.sfullname.text
+        return self._person.sfullname.get_text(strip=True)
 
     @property
     def email(self):
-        return self._person.semail.text
+        return self._person.semail.get_text(strip=True)
 
 
 class History(FBObj):
@@ -278,35 +278,35 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def id(self):
-        return int(self._case.ixbug.text)
+        return int(self._case.ixbug.get_text(strip=True))
 
     @property
     def title(self):
-        return self._case.stitle.text
+        return self._case.stitle.get_text(strip=True)
 
     @property
     def status(self):
-        return self._case.sstatus.text
+        return self._case.sstatus.get_text(strip=True)
 
     @property
     def priority(self):
-        return self._case.spriority.text
+        return self._case.spriority.get_text(strip=True)
 
     @property
     def project(self):
-        return self._case.sproject.text
+        return self._case.sproject.get_text(strip=True)
 
     @property
     def area(self):
-        return self._case.sarea.text
+        return self._case.sarea.get_text(strip=True)
 
     @property
     def assigned_to(self):
-        return self._case.spersonassignedto.text
+        return self._case.spersonassignedto.get_text(strip=True)
 
     @property
     def opened_by_id(self):
-        return int(self._case.ixpersonopenedby.text)
+        return int(self._case.ixpersonopenedby.get_text(strip=True))
 
     @property
     def opened_by(self):
@@ -314,15 +314,15 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def parent_id(self):
-        return int(self._case.ixbugparent.text)
+        return int(self._case.ixbugparent.get_text(strip=True))
 
     @property
     def children_ids(self):
-        return map(int, filter(None, self._case.ixbugchildren.text.split(',')))
+        return map(int, filter(None, self._case.ixbugchildren.get_text(strip=True).split(',')))
 
     @property
     def related_ids(self):
-        return map(int, filter(None, self._case.ixrelatedbugs.text.split(',')))
+        return map(int, filter(None, self._case.ixrelatedbugs.get_text(strip=True).split(',')))
 
     @property
     def events(self):
@@ -347,7 +347,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def tags(self):
-        return self._case.tags.text.split(',')
+        return self._case.tags.get_text(strip=True).split(',')
 
     @property
     def operations(self):
@@ -458,11 +458,11 @@ class FBAttachment(FBObj):
 
     @property
     def filename(self):
-        return self._attachment.sfilename.text
+        return self._attachment.sfilename.get_text(strip=True)
 
     @property
     def url(self):
-        url = self._attachment.surl.text.replace('&amp;', '&')
+        url = self._attachment.surl.get_text(strip=True).replace('&amp;', '&')
         return FB.full_url(url)
 
     def download(self):
@@ -491,23 +491,23 @@ class FBBugEvent(FBObj):
 
     @property
     def id(self):
-        return int(self._event.ixbugevent.text)
+        return int(self._event.ixbugevent.get_text(strip=True))
 
     @property
     def dt(self):
-        return self._event.dt.text
+        return self._event.dt.get_text(strip=True)
 
     @property
     def person(self):
-        return self._event.sperson.text
+        return self._event.sperson.get_text(strip=True)
 
     @property
     def desc(self):
-        return self._event.evtdescription.text
+        return self._event.evtdescription.get_text(strip=True)
 
     @property
     def comment(self):
-        return self._event.s.text
+        return self._event.s.get_text(strip=True)
 
     @property
     def urls(self):
@@ -543,27 +543,27 @@ class FBShortCase(FBObj):
 
     @property
     def id(self):
-        return int(self._case.ixbug.text)
+        return int(self._case.ixbug.get_text(strip=True))
 
     @property
     def status(self):
-        return self._case.sstatus.text
+        return self._case.sstatus.get_text(strip=True)
 
     @property
     def title(self):
-        return self._case.stitle.text
+        return self._case.stitle.get_text(strip=True)
 
     @property
     def project(self):
-        return self._case.sproject.text
+        return self._case.sproject.get_text(strip=True)
 
     @property
     def priority(self):
-        return self._case.spriority.text
+        return self._case.spriority.get_text(strip=True)
 
     @property
     def priority_id(self):
-        return int(self._case.ixpriority.text)
+        return int(self._case.ixpriority.get_text(strip=True))
 
     def __eq__(self, case):
         return self.id == case.id
@@ -603,15 +603,15 @@ class FBProject(FBObj):
 
     @property
     def id(self):
-        return int(self._project.ixproject.text)
+        return int(self._project.ixproject.get_text(strip=True))
 
     @property
     def name(self):
-        return self._project.sproject.text
+        return self._project.sproject.get_text(strip=True)
 
     @property
     def owner(self):
-        return self._project.spersonowner.text
+        return self._project.spersonowner.get_text(strip=True)
 
 
 class FBArea(FBObj):
@@ -624,15 +624,15 @@ class FBArea(FBObj):
 
     @property
     def id(self):
-        return int(self._area.ixarea.text)
+        return int(self._area.ixarea.get_text(strip=True))
 
     @property
     def name(self):
-        return self._area.sarea.text
+        return self._area.sarea.get_text(strip=True)
 
     @property
     def project(self):
-        return self._area.sproject.text
+        return self._area.sproject.get_text(strip=True)
 
 
 def get_prompt():
