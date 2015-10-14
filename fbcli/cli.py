@@ -107,7 +107,7 @@ class FBObj(object):
         return self.TMPL.generate(
             obj=self,
             ui=ui,
-        )
+        ).decode('utf-8')
 
     def __str__(self):
         return self.to_string()
