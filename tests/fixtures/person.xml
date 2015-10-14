@@ -1,55 +1,54 @@
 <person>
-  <ixperson>
+  <ixPerson>
    246
-  </ixperson>
-  <sfullname>
+  </ixPerson>
+  <sFullName>
    <![CDATA[José Arcadio Buendía]]>
-  </sfullname>
-  <semail>
+  </sFullName>
+  <sEmail>
    <![CDATA[jose.arcadio.buendia@soledad.com]]>
-  </semail>
-  <sphone>
-  </sphone>
-  <fadministrator>
+  </sEmail>
+  <sPhone>
+  </sPhone>
+  <fAdministrator>
    false
-  </fadministrator>
-  <fcommunity>
+  </fAdministrator>
+  <fCommunity>
    false
-  </fcommunity>
-  <fvirtual>
+  </fCommunity>
+  <fVirtual>
    false
-  </fvirtual>
-  <fdeleted>
+  </fVirtual>
+  <fDeleted>
    false
-  </fdeleted>
-  <fnotify>
+  </fDeleted>
+  <fNotify>
    true
-  </fnotify>
-  <shomepage>
-  </shomepage>
-  <slocale>
+  </fNotify>
+  <sHomepage/>
+  <sLocale>
    <![CDATA[*]]>
-  </slocale>
-  <slanguage>
+  </sLocale>
+  <sLanguage>
    <![CDATA[*]]>
-  </slanguage>
-  <stimezonekey>
+  </sLanguage>
+  <sTimeZoneKey>
    <![CDATA[*]]>
-  </stimezonekey>
-  <sldapuid>
-  </sldapuid>
-  <dtlastactivity>
+  </sTimeZoneKey>
+  <sLDAPUID>
+  </sLDAPUID>
+  <dtLastActivity>
    2015-08-28T21:16:34Z
-  </dtlastactivity>
-  <frecursebugchildren>
+  </dtLastActivity>
+  <fRecurseBugChildren>
    true
-  </frecursebugchildren>
-  <fpaletteexpanded>
+  </fRecurseBugChildren>
+  <fPalletteExpanded>
    false
-  </fpaletteexpanded>
-  <ixbugworkingon>
+  </fPalletteExpanded>
+  <ixBugWorkingOn>
    0
-  </ixbugworkingon>
-  <sfrom>
-  </sfrom>
+  </ixBugWorkingOn>
+  <sFrom>
+  </sFrom>
 </person>
