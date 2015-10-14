@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=R0201
+
+from __future__ import unicode_literals
+
 import os
 import unittest
 
@@ -54,5 +57,5 @@ class TestFBPerson(unittest.TestCase):
         xml = get_fixture('person.xml')
         fb = cli.FBPerson(xml)
         self.assertEqual(fb.id, 246)
-        self.assertEqual(fb.fullname, u'José Arcadio Buendía')
-        self.assertEqual(fb.email, u'jose.arcadio.buendia@soledad.com')
+        self.assertEqual(fb.fullname, 'José Arcadio Buendía')
+        self.assertEqual(fb.email, 'jose.arcadio.buendia@soledad.com')
