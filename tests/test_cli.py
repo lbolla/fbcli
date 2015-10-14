@@ -6,6 +6,7 @@ import unittest
 from BeautifulSoup import BeautifulSoup
 
 from fbcli import cli
+from fbcli import errors
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 FIXTURE_DIR = os.path.join(THIS_DIR, 'fixtures')
@@ -38,7 +39,7 @@ class TestExecCtx(unittest.TestCase):
 
     def test_ignore_aborted(self):
         def f():
-            raise cli.Aborted()
+            raise errors.Aborted()
         with cli.exec_ctx():
             f()
 
