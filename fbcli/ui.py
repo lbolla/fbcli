@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from functools import partial, wraps
 import atexit
 import fcntl
@@ -23,7 +25,7 @@ def colorize(color, s, readline_safe=False):
         color_open = color_close = ''
     if not isinstance(s, six.string_types):
         s = six.text_type(s)
-    return color_open + s.encode('utf-8') + color_close
+    return color_open + s + color_close
 
 
 def _supports_color(stream):
