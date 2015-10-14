@@ -18,7 +18,9 @@ def get_fixture(what):
     with open(os.path.join(FIXTURE_DIR, what), 'r') as fid:
         if what.endswith('.xml'):
             # Soup
-            return BeautifulSoup(fid.read())
+            if BeautifulSoup.__module__ != 'bs4':
+                return BeautifulSoup(fid.read())
+            return BeautifulSoup(fid.read(), 'xml')
         else:
             # Raw
             return fid.read()

@@ -192,11 +192,11 @@ class FBPerson(FBObj):
 
     @property
     def fullname(self):
-        return self._person.sfullname.text
+        return self._person.sfullname.get_text(strip=True)
 
     @property
     def email(self):
-        return self._person.semail.text
+        return self._person.semail.get_text(strip=True)
 
 
 class History(FBObj):
