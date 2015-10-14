@@ -6,10 +6,7 @@ from __future__ import unicode_literals
 import os
 import unittest
 
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from fbcli import cli
 
@@ -21,8 +18,6 @@ def get_fixture(what):
     with open(os.path.join(FIXTURE_DIR, what), 'r') as fid:
         if what.endswith('.xml'):
             # Soup
-            if BeautifulSoup.__module__ != 'bs4':
-                return BeautifulSoup(fid.read())
             return BeautifulSoup(fid.read(), 'xml')
         else:
             # Raw
