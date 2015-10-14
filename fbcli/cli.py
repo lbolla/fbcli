@@ -674,7 +674,7 @@ def help_(*args):
     if len(args) == 0:
         print()
         print('Available commands:')
-        for name, cmd in sorted(COMMANDS.iteritems()):
+        for name, cmd in sorted(COMMANDS.items()):
             print('{} - {}'.format(name.rjust(12), cmd.desc()))
         print()
         print('Type "help <cmd>" for more.')

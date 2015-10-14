@@ -74,7 +74,7 @@ def status(s):
     }
     s_ = s.strip().lower()
 
-    for st, color in color_map.iteritems():
+    for st, color in color_map.items():
         if st in s_:
             return color(s)
     return s
@@ -92,7 +92,7 @@ def priority(s):
     }
     s_ = s.strip().lower()
 
-    for st, color in color_map.iteritems():
+    for st, color in color_map.items():
         if st == s_:
             return color(s)
     return s
