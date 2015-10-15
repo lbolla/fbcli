@@ -2,6 +2,7 @@ from functools import wraps
 import getpass
 import logging
 import os
+import importlib
 
 from six.moves import input
 
@@ -28,10 +29,20 @@ class FBClient(object):
     logger = logging.getLogger('fb.client')
 
     def __init__(self):
+        self.__fb = None
         self._fburl = from_env_or_ask('FBURL', 'Fogbugz URL: ')
         self._fbuser = from_env_or_ask('FBUSER', 'Username: ')
-        self._fbpass = from_env_or_ask('FBPASS', 'Password: ', True)
-        self.__fb = None
+        self._fbpass = (
+            self._password_from_keyring() or
+            from_env_or_ask('FBPASS', 'Password: ', True)
+        )
+
+    def _password_from_keyring(self):
+        try:
+            keyring = importlib.import_module('keyring')
+        except ImportError:
+            return
+        return keyring.get_password(self._fburl, self._fbuser)
 
     @property
     def _fb(self):
