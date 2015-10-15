@@ -55,3 +55,15 @@ class TestFBPerson(unittest.TestCase):
         self.assertEqual(fb.id, 246)
         self.assertEqual(fb.fullname, 'José Arcadio Buendía')
         self.assertEqual(fb.email, 'jose.arcadio.buendia@soledad.com')
+
+
+class TestFBAttachment(unittest.TestCase):
+
+    def test_init(self):
+        xml = get_fixture('attachment.xml')
+        fb = cli.FBAttachment(xml)
+        self.assertEqual(fb.filename, 'app_report (1).csv')
+        self.assertEqual(
+            fb.url, 'http://fogbugz/default.asp?pg=pgDownload&pgType='
+            'pgFile&ixBugEvent=66555&ixAttachment=4790&s'
+            'FileName=app_report%20(1).csv&sTicket=')

@@ -457,11 +457,11 @@ class FBAttachment(FBObj):
 
     @property
     def filename(self):
-        return self._attachment.sFilename.get_text(strip=True)
+        return self._attachment.sFileName.get_text(strip=True)
 
     @property
     def url(self):
-        url = self._attachment.sUrl.get_text(strip=True).replace('&amp;', '&')
+        url = self._attachment.sURL.get_text(strip=True).replace('&amp;', '&')
         return FB.full_url(url)
 
     def download(self):
@@ -1091,7 +1091,7 @@ def exec_(cmd, args):
 def _format_exception(exc):
     if isinstance(exc, errors.Aborted):
         print('Aborted.')
-    elif yaml.error.YAMLError:
+    elif isinstance(exc, yaml.error.YAMLError):
         logger.exception('ERROR in case header: must be valid YAML')
     else:
         logger.exception('ERROR')
