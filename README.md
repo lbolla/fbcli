@@ -26,6 +26,7 @@ Run tests with:
 
 Run tests for Py27 and Py35 with:
 
+    >>> pip install tox
     >>> tox
 
 # References
