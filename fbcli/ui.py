@@ -1,7 +1,8 @@
+from __future__ import unicode_literals
+
 from functools import partial, wraps
 import atexit
 import fcntl
-import HTMLParser
 import os
 import readline
 import struct
@@ -9,6 +10,7 @@ import sys
 import termios
 
 import six
+from six.moves import html_parser
 
 
 def colorize(color, s, readline_safe=False):
@@ -23,7 +25,7 @@ def colorize(color, s, readline_safe=False):
         color_open = color_close = ''
     if not isinstance(s, six.string_types):
         s = six.text_type(s)
-    return color_open + s.encode('utf-8') + color_close
+    return color_open + s + color_close
 
 
 def _supports_color(stream):
@@ -72,7 +74,7 @@ def status(s):
     }
     s_ = s.strip().lower()
 
-    for st, color in color_map.iteritems():
+    for st, color in color_map.items():
         if st in s_:
             return color(s)
     return s
@@ -90,7 +92,7 @@ def priority(s):
     }
     s_ = s.strip().lower()
 
-    for st, color in color_map.iteritems():
+    for st, color in color_map.items():
         if st == s_:
             return color(s)
     return s
@@ -172,4 +174,4 @@ def init_readline():
 
 
 def html_unescape(s):
-    return HTMLParser.HTMLParser().unescape(s)
+    return html_parser.HTMLParser().unescape(s)

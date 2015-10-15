@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=R0201
+
+from __future__ import unicode_literals
+
 import os
 import unittest
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from fbcli import cli
 from fbcli import errors
@@ -16,7 +19,7 @@ def get_fixture(what):
     with open(os.path.join(FIXTURE_DIR, what), 'r') as fid:
         if what.endswith('.xml'):
             # Soup
-            return BeautifulSoup(fid.read())
+            return BeautifulSoup(fid.read(), 'xml')
         else:
             # Raw
             return fid.read()
@@ -50,5 +53,5 @@ class TestFBPerson(unittest.TestCase):
         xml = get_fixture('person.xml')
         fb = cli.FBPerson(xml)
         self.assertEqual(fb.id, 246)
-        self.assertEqual(fb.fullname, u'José Arcadio Buendía')
-        self.assertEqual(fb.email, u'jose.arcadio.buendia@soledad.com')
+        self.assertEqual(fb.fullname, 'José Arcadio Buendía')
+        self.assertEqual(fb.email, 'jose.arcadio.buendia@soledad.com')
