@@ -2,7 +2,6 @@
 
 [<img src="https://travis-ci.org/lbolla/fbcli.svg?branch=master">](https://travis-ci.org/lbolla/fbcli)
 
-
 Install with:
 
     $> python setup.py install
@@ -17,6 +16,10 @@ Get help from `fb`:
 
     >>> help
     >>> help <command>  # for more
+
+# Tutorial
+
+A quick video tutorial is available here: https://www.youtube.com/watch?v=2tunk7HD0GY
 
 # Development
 
@@ -35,4 +38,7 @@ Run tests for Py27 and Py35 with:
 - FogBugz XML API:
   - https://developers.fogbugz.com/default.asp?W194
   - http://help.fogcreek.com/8202/xml-api
-- Tutorial: https://www.youtube.com/watch?v=2tunk7HD0GY
+
+# Acknowledgements
+
+Ported to Python 3 by Jason R. Coombs.
