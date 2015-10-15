@@ -67,3 +67,13 @@ class TestFBAttachment(unittest.TestCase):
             fb.url, 'http://fogbugz/default.asp?pg=pgDownload&pgType='
             'pgFile&ixBugEvent=66555&ixAttachment=4790&s'
             'FileName=app_report%20(1).csv&sTicket=')
+
+
+class TestFBCase(unittest.TestCase):
+
+    def test_init(self):
+        xml = get_fixture('FB41675.xml')
+        fb = cli.FBCase(xml)
+        self.assertEqual(fb.parent_id, 0)
+        self.assertEqual(fb.children_ids, [])
+        self.assertEqual(fb.related_ids, [])

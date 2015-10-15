@@ -317,11 +317,17 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def children_ids(self):
-        return map(int, filter(None, self._case.ixBugChildren.get_text(strip=True).split(',')))
+        return list(map(
+            int,
+            filter(None, self._case.ixBugChildren.get_text(
+                strip=True).split(','))))
 
     @property
     def related_ids(self):
-        return map(int, filter(None, self._case.ixRelatedBugs.get_text(strip=True).split(',')))
+        return list(map(
+            int,
+            filter(None, self._case.ixRelatedBugs.get_text(
+                strip=True).split(','))))
 
     @property
     def events(self):
