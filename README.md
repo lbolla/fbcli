@@ -24,6 +24,10 @@ Run tests with:
 
     >>> python setup.py test
 
+Run tests for Py27 and Py35 with:
+
+    >>> tox
+
 # References
 
 - FogBugzPy: https://developers.fogbugz.com/?W199
