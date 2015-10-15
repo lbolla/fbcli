@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import unittest
 
 import yaml
@@ -33,3 +35,36 @@ This is the body'''
         t = editor.Text(txt)
         with self.assertRaises(yaml.error.YAMLError):
             t.meta  # pylint: disable=pointless-statement
+
+    def test_utf8_body(self):
+        txt = '''Title: Some ¢hars
+Project: Proj
+Area: misc
+Assign to: me
+Priority: high
+---
+This is the body with mo®e utf8.
+'''
+        t = editor.Text(txt)
+        self.assertEqual(t.meta['Title'], 'Some ¢hars')
+        self.assertEqual(t.body, 'This is the body with mo®e utf8.')
+
+
+class TestEditor(unittest.TestCase):
+
+    def test_write_new(self):
+        editor.clear()
+        expected = '''
+# Lines starting wth "#" will be ignored.
+# Leave this file empty to abort action.
+# It's possible to add metadata in the format of a header.
+# Use "---" as separator between the header and the body.
+# E.g. To upload files use:
+#    Files:
+#      - path_to_file_1
+#      - path_to_file_2
+'''
+
+        with editor.writing():
+            body = open(editor.FNAME, 'r').read()
+            self.assertEqual(body, expected)

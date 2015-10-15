@@ -424,7 +424,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @classmethod
     def new(cls, **kwargs):
         rs = FB.new(**kwargs)
-        ixbug = rs.find('case')['ixbug']
+        ixbug = rs.find('case')['ixBug']
         return cls.get_by_id(ixbug)
 
 
@@ -875,7 +875,7 @@ Priority: Need to fix
 
 ''')  # noqa
 
-    header = tmpl.generate(user=CURRENT_USER)
+    header = tmpl.generate(user=CURRENT_USER).decode('utf-8')
     with editor.writing(header=header) as text:
         editor.abort_if_empty(text)
         params = text.get_params_for_new()

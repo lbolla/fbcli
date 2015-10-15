@@ -35,12 +35,12 @@ def clear():
 
 
 def _get_file():
-    reuse, mode = False, 'w+r'
+    reuse, mode = False, 'w+'
     if os.path.exists(FNAME):
         if yes_or_no('Comment file already exists. Reuse?') == NO:
             clear()
         else:
-            reuse, mode = True, 'a+r'
+            reuse, mode = True, 'a+'
     return open(FNAME, mode), reuse
 
 
@@ -62,7 +62,8 @@ def _write(header=DEFAULT_HEADER):
             fid.write(FOOTER)
             fid.flush()
 
-        call([EDITOR, fid.name])
+        if EDITOR:
+            call([EDITOR, fid.name])
         fid.seek(0)
         text = fid.read()
         return Text(text)
@@ -148,7 +149,7 @@ class Text(object):
 
     @property
     def body(self):
-        return _strip_comments(self._raw_body.decode('utf-8')).strip('\n')
+        return _strip_comments(self._raw_body).strip('\n')
 
     @property
     def nfiles(self):
