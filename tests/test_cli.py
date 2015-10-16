@@ -77,3 +77,12 @@ class TestFBCase(unittest.TestCase):
         self.assertEqual(fb.parent_id, 0)
         self.assertEqual(fb.children_ids, [])
         self.assertEqual(fb.related_ids, [])
+
+
+class TestFBMilestone(unittest.TestCase):
+
+    def test_init(self):
+        xml = get_fixture('milestone.xml')
+        fb = cli.FBMilestone(xml)
+        self.assertEqual(fb.id, 4)
+        self.assertEqual(fb.name, 'ASAP')

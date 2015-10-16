@@ -640,6 +640,26 @@ class FBArea(FBObj):
         return self._area.sProject.get_text(strip=True)
 
 
+class FBMilestone(FBObj):
+    TMPL = Template('''{% raw ui.darkgray(ui.rtrunc(obj.project, 30)) %} \
+{% raw obj.name %}''')
+
+    def __init__(self, milestone):
+        self._milestone = milestone
+
+    @property
+    def id(self):
+        return int(self._milestone.ixFixFor.get_text(strip=True))
+
+    @property
+    def name(self):
+        return self._milestone.sFixFor.get_text(strip=True)
+
+    @property
+    def project(self):
+        return self._milestone.sProject.get_text(strip=True)
+
+
 def get_prompt():
     return ui.cyan('%s>>> ' % (
         '[%s] ' % CURRENT_CASE.id if CURRENT_CASE else ''), readline_safe=True)
@@ -871,9 +891,11 @@ def new():
 
     tmpl = Template('''Title: <title>
 Project: <project>
-Area: <area>
-Assign to: {{ user.fullname }}
-Priority: Need to fix
+# Area: <area>
+# Assign to: {{ user.fullname }}
+# Priority: Need to fix
+# Milestone: Infrastructure and Internal Errors
+# Tags: <list>
 
 ---
 
@@ -915,9 +937,28 @@ def areas(*args):
     if len(args) > 0:
         project = args[0].lower()
         areas = [a for a in areas if a.project.lower() == project]
+
     print()
     for area in sorted(areas, key=lambda a: (a.project, a.name)):
         print(area)
+    print()
+
+
+# TODO
+@command('milestones')
+def milestones(*args):
+    '''List milestones.
+    '''
+
+    result = FB.listFixFors()
+    milestones = [FBMilestone(m) for m in result.findAll('fixfor')]
+    if len(args) > 0:
+        project = args[0].lower()
+        milestones = [m for m in milestones if m.project.lower() == project]
+
+    print()
+    for milestone in sorted(milestones, key=lambda m: (m.project, m.name)):
+        print(milestone)
     print()
 
 

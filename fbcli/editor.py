@@ -176,6 +176,7 @@ class Text(object):
             sProject=meta.get('Project'),
             sArea=meta.get('Area'),
             sPriority=meta.get('Priority'),
+            sFixFor=meta.get('Milestone'),
             sTags=','.join(meta.get('Tags', [])),
             sEvent=self.body,
         )
