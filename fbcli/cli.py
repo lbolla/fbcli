@@ -750,7 +750,7 @@ def reload_():
 @command('close')
 def close():
     '''Close the current ticket.'''
-    assert_current()
+    assert_operation('close')
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.close(**params)
