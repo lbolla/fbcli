@@ -165,7 +165,7 @@ def ignoring_IOerror(f):
 
 def init_readline():
     readline.set_completer(completer)
-    readline.set_completer_delims(' \t\n')
+    readline.set_completer_delims('')
     readline.parse_and_bind('tab: complete')
     histfile = os.path.join(os.path.expanduser("~"), ".fbcli_history")
     ignoring_IOerror(readline.read_history_file)(histfile)
