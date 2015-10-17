@@ -1,9 +1,15 @@
 from setuptools import setup, find_packages
+import sys
 
 from fbcli import __version__
 
 with open('README.md', 'r') as readme:
     long_description = readme.read()
+
+extra_install_requires = []
+if hasattr(sys, 'pypy_version_info'):
+    # PyPy
+    extra_install_requires.append('lxml')
 
 setup(
     name='fbcli',
@@ -19,7 +25,7 @@ setup(
         'tornado>=4,<5dev',
         'pyyaml>=3,<4dev',
         'six',
-    ],
+    ] + extra_install_requires,
     test_suite='tests',
     entry_points={
         'console_scripts': [

@@ -1,4 +1,4 @@
-# pylint: disable=trailing-whitespace,W0603,W0621,R0904
+# pylint: disable=trailing-whitespace,redefined-builtin,W0603,W0621,R0904
 
 from __future__ import print_function
 
@@ -109,8 +109,11 @@ class FBObj(object):
             ui=ui,
         ).decode('utf-8')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.to_string()
+
+    def __str__(self):
+        return self.__unicode__().encode('utf8')
 
 
 class FBStatus(FBObj):
@@ -1176,3 +1179,7 @@ def main():
                 exec_(cmd, args)
     finally:
         logoff()
+
+
+if __name__ == '__main__':
+    main()

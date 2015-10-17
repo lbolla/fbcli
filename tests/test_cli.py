@@ -79,6 +79,14 @@ class TestFBCase(unittest.TestCase):
         self.assertEqual(fb.related_ids, [])
 
 
+class TestFBBugEvent(unittest.TestCase):
+
+    def test_utf8(self):
+        xml = get_fixture('FB38451.xml')
+        fb = cli.FBBugEvent(xml)
+        self.assertTrue(fb.comment.startswith(u"Yes. \\xa0I'll"))
+
+
 class TestFBMilestone(unittest.TestCase):
 
     def test_init(self):
