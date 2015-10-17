@@ -113,7 +113,12 @@ class FBObj(object):
         return self.to_string()
 
     def __str__(self):
-        return self.__unicode__().encode('utf8')
+        # Ugly workaround to make tornado's Template play nicely with
+        # py2 and py3
+        u = self.__unicode__()
+        if not isinstance(u, str):
+            u = u.encode('utf8')
+        return u
 
 
 class FBStatus(FBObj):
