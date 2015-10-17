@@ -39,7 +39,7 @@ def _supports_color(stream):
     if curses and hasattr(stream, 'isatty') and stream.isatty():
         try:
             curses.setupterm()
-            if curses.tigetnum("colors") > 0:
+            if curses.tigetnum(str("colors")) > 0:
                 color = True
         except Exception:
             pass
@@ -119,7 +119,7 @@ def title(s):
 def _get_hw():
     try:
         return struct.unpack(
-            'hh', fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, '1234'))
+            str('hh'), fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, '1234'))
     except Exception:
         return (25, 80)
 
