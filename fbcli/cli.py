@@ -620,6 +620,13 @@ class FBProject(FBObj):
     def __init__(self, project):
         self._project = project
 
+    @classmethod
+    def get_all(cls):
+        result = FB.listProjects()
+        return sorted(
+            [cls(pxml) for pxml in result.findAll('project')],
+            key=lambda p: p.name)
+
     @property
     def id(self):
         return int(self._project.ixProject.get_text(strip=True))
@@ -688,6 +695,7 @@ def logon():
     Example:
     >>> logon
     '''
+    logger.debug('Logging on')
     FB.login()
     return set_current_user(FBPerson.get_by_email(FB.current_user))
 
@@ -931,10 +939,9 @@ def projects():
     Example:
     >>> projects
     '''
-    result = FB.listProjects()
     print()
-    for pxml in result.findAll('project'):
-        print(FBProject(pxml))
+    for p in FBProject.get_all():
+        print(p)
     print()
 
 
@@ -1123,6 +1130,11 @@ Type "help" to get started.
 ''')
 
 
+def _warmup():
+    logger.debug('Loading people')
+    FBPerson.get_all()
+
+
 def read_():
     cmdline = input(get_prompt())
     if not cmdline or cmdline.startswith(editor.COMMENT_CHAR):
@@ -1178,6 +1190,7 @@ def main():
     args = parse_command_line()
 
     logon()
+    _warmup()
     welcome()
 
     if args:
