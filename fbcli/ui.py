@@ -143,6 +143,7 @@ def completer(text, state):
     all_options = list(COMMANDS.keys())
     all_options += [str(case.id) for case in FBShortCase.HISTORY]
     all_options += [person.fullname for person in FBPerson.CACHE]
+    all_options += [person.email for person in FBPerson.CACHE]
     if LAST_SEARCH:
         all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
@@ -165,7 +166,6 @@ def ignoring_IOerror(f):
 
 def init_readline():
     readline.set_completer(completer)
-    readline.set_completer_delims('')
     readline.parse_and_bind('tab: complete')
     histfile = os.path.join(os.path.expanduser("~"), ".fbcli_history")
     ignoring_IOerror(readline.read_history_file)(histfile)
