@@ -1,14 +1,8 @@
-- generic edit
 - list unread
 - simplify creation by listing projects/areas/persons
     - use editor's autocompletion
-    - possibly load project/areas/people on startup and cache them to help autocompletion?
-- define aliases? and persist them
-- handle milestones, aka "sFixFor"
 - handle categories, aka "sCategory" - bug, feature, task, etc.
 - edit existing bug events
-- change current case priority
-- Py3 compatible
 - Find closest project/area/priority/assignee with Levenshtein
 - fbcli.ini to define:
   - aliases
@@ -16,5 +10,3 @@
   - mycases ordering
 
 BUGS
-
-None. :-)
