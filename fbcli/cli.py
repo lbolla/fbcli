@@ -348,6 +348,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return [FBBugEvent(event) for event in self._case.events]
 
     @property
+    def last_event(self):
+        return self.events[-1]
+
+    @property
     def attachments(self):
         attachments = []
         for event in self.events:
@@ -399,6 +403,14 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.assert_operation('edit')
         FB.edit(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            **self._clean_kwargs(kwargs))
+        self.reset()
+
+    def amend(self, **kwargs):
+        self.assert_operation('edit')
+        FB.edit(
+            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+            ixBugEvent=self.last_event.id,
             **self._clean_kwargs(kwargs))
         self.reset()
 
@@ -1061,6 +1073,21 @@ def operations():
     assert_current()
     print('Valid operations: {}\nNot all implemented, yet.'.format(
         ' '.join(CURRENT_CASE.operations)))
+
+
+@command('amend')
+def amend():
+    '''Amend last comment.
+
+    Example:
+    >>> amend
+'''
+    assert_current()
+    body = CURRENT_CASE.last_event.comment + '\n\n'
+    with editor.writing(header=body) as text:
+        editor.abort_if_empty(text)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.amend(**params)
 
 
 @command('raw')
