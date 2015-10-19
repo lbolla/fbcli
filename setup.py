@@ -21,7 +21,7 @@ setup(
     author_email='lbolla@gmail.com',
     packages=find_packages('.'),
     install_requires=[
-        'fogbugz_bis>=1.0.2',
+        'fogbugz_bis>=1.0.3',
         'tornado>=4,<5dev',
         'pyyaml>=3,<4dev',
         'six',
