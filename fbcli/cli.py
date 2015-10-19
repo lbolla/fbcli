@@ -235,6 +235,7 @@ class FBCase(FBObj):
 {% raw ui.title(obj.title) %}
 {% raw ui.status(obj.status) %} - \
 {% raw ui.priority(obj.priority) %} - \
+{% raw ui.darkgray(obj.milestone) %} - \
 Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
@@ -270,6 +271,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'sPriority',
             'sProject',
             'sArea',
+            'sFixFor',
             'ixPersonOpenedBy',
             'ixBugParent',
             'ixBugChildren',
@@ -318,6 +320,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def opened_by(self):
         return FBPerson.get_by_id(self.opened_by_id)
+
+    @property
+    def milestone(self):
+        return self._case.sFixFor.get_text(strip=True)
 
     @property
     def parent_id(self):
@@ -952,10 +958,13 @@ def areas(*args):
     print()
 
 
-# TODO
 @command('milestones')
 def milestones(*args):
     '''List milestones.
+
+    Example:
+    >>> milestones
+    >>> milestones brandindex
     '''
 
     result = FB.listFixFors()
