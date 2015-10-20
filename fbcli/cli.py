@@ -1090,6 +1090,27 @@ def amend():
         CURRENT_CASE.amend(**params)
 
 
+def _parse_kwargs(args_):
+    kwargs = {}
+    line = ' '.join(args_)
+    for kv in line.split(','):
+        k, v = kv.split('=')
+        kwargs[k] = v
+    return kwargs
+
+
+@command('edit')
+def edit(*args):
+    '''Generic edit of current case.
+
+    Example:
+    >>> edit sFixFor=ASAP
+'''
+    assert_operation('edit')
+    kwargs = _parse_kwargs(args)
+    CURRENT_CASE.edit(**kwargs)
+
+
 @command('raw')
 def raw(*args):
     '''Execute a command on FB API and return raw result.
@@ -1099,14 +1120,8 @@ def raw(*args):
 
     Mostly used for debugging.'''
     cmd, args_ = args[0], args[1:]
-    args, kwargs = [], {}
-    for arg in args_:
-        if '=' in arg:
-            k, v = arg.split('=', 1)
-            kwargs[k] = v
-        else:
-            args.append(arg)
-    result = getattr(FB, cmd)(*args, **kwargs)
+    kwargs = _parse_kwargs(args_)
+    result = getattr(FB, cmd)(**kwargs)
     print(result.prettify())
 
 
