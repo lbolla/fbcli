@@ -143,7 +143,6 @@ def completer(text, state):
     all_options = list(COMMANDS.keys())
     all_options += [str(case.id) for case in FBShortCase.HISTORY]
     all_options += [person.fullname for person in FBPerson.CACHE]
-    all_options += [person.email for person in FBPerson.CACHE]
     if LAST_SEARCH:
         all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
