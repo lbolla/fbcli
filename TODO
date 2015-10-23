@@ -8,5 +8,9 @@
   - aliases
   - mycases format
   - mycases ordering
+- notify users
 
 BUGS
+
+- amend inserts a new comment instead of amendling last
+  - only amend last if author is me
