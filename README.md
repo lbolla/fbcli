@@ -19,7 +19,9 @@ Get help from `fb`:
 
 # Tutorial
 
-<iframe width="420" height="315" src="https://www.youtube.com/embed/2tunk7HD0GY" frameborder="0" allowfullscreen></iframe>
+A quick video tutorial is available [here](https://www.youtube.com/watch?v=2tunk7HD0GY).
+
+[![Tutorial](https://j.gifs.com/KB69W7.gif)](https://www.youtube.com/watch?v=2tunk7HD0GY)
 
 # Development
 
