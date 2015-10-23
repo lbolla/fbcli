@@ -5,6 +5,7 @@ import os
 import importlib
 
 from six.moves import input
+from six.moves.urllib_parse import urljoin
 
 import fogbugz
 
@@ -81,4 +82,4 @@ class FBClient(object):
         self._fb.logon(self._fbuser, self._fbpass)
 
     def full_url(self, path):
-        return self._fburl + path
+        return urljoin(self._fburl, path)

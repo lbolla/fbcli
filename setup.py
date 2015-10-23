@@ -6,10 +6,15 @@ from fbcli import __version__
 with open('README.md', 'r') as readme:
     long_description = readme.read()
 
+PY2 = sys.version_info[0] == 2
+PYPY = hasattr(sys, 'pypy_version_info')
+
 extra_install_requires = []
-if hasattr(sys, 'pypy_version_info'):
-    # PyPy
-    extra_install_requires.append('lxml')
+tests_require = []
+if PY2:
+    tests_require.append('mock')
+    if PYPY:
+        extra_install_requires.append('lxml')
 
 setup(
     name='fbcli',
@@ -27,6 +32,7 @@ setup(
         'six',
     ] + extra_install_requires,
     test_suite='tests',
+    tests_require=tests_require,
     entry_points={
         'console_scripts': [
             'fb = fbcli.cli:main',
