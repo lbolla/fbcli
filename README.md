@@ -21,7 +21,7 @@ Get help from `fb`:
 
 A quick video tutorial is available [here](https://www.youtube.com/watch?v=2tunk7HD0GY).
 
-[![Tutorial](https://j.gifs.com/KB69W7.gif)](https://www.youtube.com/watch?v=2tunk7HD0GY)
+[![Tutorial](https://j.gifs.com/vJxLDD.gif)](https://www.youtube.com/watch?v=2tunk7HD0GY)
 
 # Development
 
