@@ -1105,6 +1105,7 @@ def edit(*args):
 
     Example:
     >>> edit sFixFor=ASAP
+    >>> edit ixBugParent=1234
 '''
     assert_operation('edit')
     kwargs = _parse_kwargs(args)

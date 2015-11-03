@@ -178,6 +178,7 @@ class Text(object):
             sPriority=meta.get('Priority'),
             sFixFor=meta.get('Milestone'),
             sTags=','.join(meta.get('Tags', [])),
+            ixBugParent=meta.get('Parent'),
             sEvent=self.body,
         )
         if self.nfiles > 0:
