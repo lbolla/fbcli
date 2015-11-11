@@ -879,6 +879,7 @@ def search(*args):
     Example:
     >>> search carmax
     >>> search assignedTo:"Lorenzo Bolla" status:Active
+    >>> search tag:answexd
     '''
     q = ' '.join(args)
     rs = FBCaseSearch.search(q)
@@ -1107,6 +1108,7 @@ def edit(*args):
     Example:
     >>> edit sFixFor=ASAP
     >>> edit ixBugParent=1234
+    >>> edit sTags=mytag
 '''
     assert_operation('edit')
     kwargs = _parse_kwargs(args)
