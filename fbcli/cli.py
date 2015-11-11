@@ -1094,6 +1094,8 @@ def amend():
 
 def _parse_kwargs(args_):
     kwargs = {}
+    if not args_:
+        return kwargs
     line = ' '.join(args_)
     for kv in line.split(','):
         k, v = kv.split('=')
