@@ -616,12 +616,13 @@ class FBCaseSearch(FBObj):
     @classmethod
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
-        cases = []
+        cases = {}
         resp = FB.search(
             q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority")
         for case in resp.cases.findAll('case'):
-            cases.append(FBShortCase.from_xml(case))
-        return cls(cases)
+            cobj = FBShortCase.from_xml(case)
+            cases[cobj.id] = cobj
+        return cls(cases.values())
 
 
 class FBProject(FBObj):
