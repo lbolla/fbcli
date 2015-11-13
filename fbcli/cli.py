@@ -930,6 +930,7 @@ Project: <project>
 # Area: <area>
 # Assign to: {{ user.fullname }}
 # Priority: Need to fix
+# Parent: <id>
 # Milestone: Infrastructure and Internal Errors
 # Tags: <list>
 
