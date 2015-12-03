@@ -168,7 +168,13 @@ class Text(object):
     def is_empty(self):
         return not self.body
 
+    def validate_for_new(self):
+        assert 'Title' in self.meta, 'Missing title'
+        assert self.meta['Title'] is not None, 'Missing title'
+        assert self.meta['Title'] != '<title>', 'Specify a valid title'
+
     def get_params_for_new(self):
+        self.validate_for_new()
         meta = self.meta
         params = dict(
             sTitle=meta.get('Title'),

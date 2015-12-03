@@ -49,6 +49,30 @@ This is the body with mo®e utf8.
         self.assertEqual(t.meta['Title'], 'Some ¢hars')
         self.assertEqual(t.body, 'This is the body with mo®e utf8.')
 
+    def test_new_invalid_title(self):
+        txt = '''Title: <title>
+Project: Proj
+Area: misc
+Assign to: me
+Priority: for consideration
+---
+This is the body'''
+        t = editor.Text(txt)
+        with self.assertRaises(AssertionError):
+            t.get_params_for_new()
+
+    def test_new_empty_title(self):
+        txt = '''Title:
+Project: Proj
+Area: misc
+Assign to: me
+Priority: for consideration
+---
+This is the body'''
+        t = editor.Text(txt)
+        with self.assertRaises(AssertionError):
+            t.get_params_for_new()
+
 
 class TestEditor(unittest.TestCase):
 
