@@ -1112,6 +1112,7 @@ def edit(*args):
     >>> edit sFixFor=ASAP
     >>> edit ixBugParent=1234
     >>> edit sTags=mytag
+    >>> edit sStatus=testing
 '''
     assert_operation('edit')
     kwargs = _parse_kwargs(args)
