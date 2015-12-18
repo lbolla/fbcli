@@ -108,6 +108,7 @@ def _id(color, s, ljust=None, rjust=None):
 
 
 caseid = partial(_id, lightcyan)
+eventid = partial(_id, darkgray)
 linkid = partial(_id, lightpurple)
 attachmentid = partial(_id, lightpurple)
 

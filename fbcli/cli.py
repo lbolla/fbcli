@@ -511,7 +511,7 @@ class FBAttachment(FBObj):
 class FBBugEvent(FBObj):
 
     TMPL = Template(
-        '''{{ obj.dt }} - {{ obj.person }}
+        '''{{ ui.eventid(obj.id) }} {{ obj.dt }} - {{ obj.person }}
 {% raw ui.white(ui.html_unescape(obj.desc)) %}
 {% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
 {% raw a %}{% end %}{% end %}
@@ -867,6 +867,38 @@ def comment():
     '''
     assert_current()
     with editor.writing() as text:
+        editor.abort_if_empty(text)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.edit(**params)
+
+
+@command('reply')
+def reply(*args):
+    '''Reply to comment.
+
+    Call $EDITOR to write the comment and add the past comment, quoted.
+
+    Example:
+    >>> reply  # reply to latest
+    >>> reply 1234  # reply to specific comment
+    '''
+    assert_current()
+
+    if not args:
+        event = CURRENT_CASE.events[-1]
+    else:
+        event_id = args[0]
+        all_events = {
+            e.id: e for e in CURRENT_CASE.events
+        }
+        event = all_events[int(event_id)]
+
+    assert event.comment, 'Empty event'
+    header = '\n'.join(
+        '> {}'.format(line)
+        for line in event.comment.splitlines()
+    ) + '\n\n'
+    with editor.writing(header) as text:
         editor.abort_if_empty(text)
         params = text.get_params_for_comment()
         CURRENT_CASE.edit(**params)
