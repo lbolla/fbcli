@@ -126,7 +126,7 @@ def ltrunc(s, n):
 
 def completer(text, state):
     from fbcli.cli import (
-        COMMANDS, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
+        COMMANDS, ALIASES, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
 
     line = readline.get_line_buffer()
     cmd = line.split()[0] if line else None
@@ -139,6 +139,7 @@ def completer(text, state):
         all_options += [person.fullname for person in FBPerson.CACHE]
     else:
         all_options += list(COMMANDS.keys())
+        all_options += list(ALIASES.keys())
         all_options += [str(case.id) for case in FBShortCase.HISTORY]
         if LAST_SEARCH:
             all_options += [str(case.id) for case in LAST_SEARCH.shortcases]

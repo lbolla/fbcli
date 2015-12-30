@@ -11,8 +11,7 @@ import re
 import sys
 import tempfile
 
-from six.moves import input
-from six.moves import urllib
+from six.moves import input, urllib, configparser
 
 from tornado.template import Template
 from tornado.options import parse_command_line
@@ -30,6 +29,8 @@ CURRENT_USER = None
 LAST_SEARCH = None
 
 COMMANDS = {}
+ALIASES = {}
+
 
 # Poor man HTML link regex
 URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\}]*')
@@ -60,6 +61,7 @@ def command(*names):
     logger = logging.getLogger('fb.cmd')
 
     def wrapper(f):
+        global COMMANDS
 
         for name in names:
             COMMANDS[name] = Command(f)
@@ -72,6 +74,12 @@ def command(*names):
         return helper
 
     return wrapper
+
+
+def alias(name, cmdline):
+    global ALIASES
+    ALIASES[name] = a = Alias(cmdline)
+    return a
 
 
 def xdg_open(what):
@@ -97,6 +105,31 @@ class Command(object):
 
     def help(self):
         return self.f.__doc__
+
+
+class Alias(object):
+
+    def __init__(self, cmdline):
+        tokens = cmdline.split()
+        self.cmdname = tokens[0]
+        self.args = tokens[1:]
+
+    @property
+    def cmd(self):
+        return COMMANDS.get(self.cmdname)
+
+    def __call__(self, *args):
+        cmd = self.cmd
+        assert cmd is not None, 'Unknown command {}'.format(cmd)
+        args = self.args + list(args)
+        return cmd(*args)
+
+    def desc(self):
+        return ' '.join([self.cmdname] + self.args)
+
+    def help(self):
+        return 'Alias for: {}\n\n{}'.format(
+            ui.white(self.desc()), self.cmd.help())
 
 
 class FBObj(object):
@@ -738,11 +771,18 @@ def help_(*args):
         for name, cmd in sorted(COMMANDS.items()):
             print('{} - {}'.format(name.rjust(12), cmd.desc()))
         print()
+        print('Aliases:')
+        for name, cmd in sorted(ALIASES.items()):
+            print('{} - {}'.format(name.rjust(12), cmd.desc()))
+        print()
         print('Type "help <cmd>" for more.')
         print()
     else:
         name = args[0]
-        print(COMMANDS[name].help())
+        if name in COMMANDS:
+            print(COMMANDS[name].help())
+        elif name in ALIASES:
+            print(ALIASES[name].help())
 
 
 @command('whoami')
@@ -912,24 +952,11 @@ def search(*args):
     >>> search carmax
     >>> search assignedTo:"Lorenzo Bolla" status:Active
     >>> search tag:answexd
+    >>> search assignedTo:me project:brandindex
     '''
     q = ' '.join(args)
     rs = FBCaseSearch.search(q)
     print(rs)
-
-
-@command('mycases')
-def mycases(*args):
-    '''List the cases of the logged in user.
-
-    Example:
-    >>> mycases
-    >>> mycases project:brandindex
-    '''
-    q = 'assignedto:"{}" status:Active'.format(CURRENT_USER.fullname)
-    if args:
-        q += ' ' + ' '.join(args)
-    search(q)
 
 
 @command('browse', 'b')
@@ -1212,6 +1239,40 @@ Type "help" to get started.
 ''')
 
 
+def create_aliases():
+    '''Create command aliases.
+
+    User-defined aliases are read from an ini file located in
+    $HOME/.fbrc or in the current directory.
+
+    Example of .fbrc file:
+    
+        [aliases]
+        myalias = search assignedto:me status:active
+
+    '''
+
+    # Default aliases
+    alias('mycases', 'search assignedTo:me status:active')
+
+    # User-defined aliases
+    cp = configparser.ConfigParser()
+    # Look in various places
+    cp.read([
+        '/etc/fbrc',
+        os.path.expanduser('~/.fbrc'),
+        os.getcwd(),
+    ])
+    if cp.has_section('aliases'):
+        for name in cp.options('aliases'):
+            cmdline = cp.get('aliases', name)
+            alias(name, cmdline)
+
+
+# Create aliases immediately
+create_aliases()
+
+
 def _warmup():
     logger.debug('Loading people')
     FBPerson.get_all()
@@ -1239,6 +1300,9 @@ def exec_(cmd, args):
 
     if cmd.isdigit():
         show(cmd)
+
+    elif cmd in ALIASES:
+        ALIASES[cmd](*args)
 
     else:
         f = COMMANDS.get(cmd)

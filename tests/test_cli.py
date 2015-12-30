@@ -94,3 +94,15 @@ class TestFBMilestone(unittest.TestCase):
         fb = cli.FBMilestone(xml)
         self.assertEqual(fb.id, 4)
         self.assertEqual(fb.name, 'ASAP')
+
+
+class TestAlias(unittest.TestCase):
+
+    def test_additional_args(self):
+
+        @cli.command('foo')
+        def foo_cmd(*args):
+            return args
+
+        a = cli.alias('foo_alias', 'foo bar')
+        self.assertEqual(a('baz'), ('bar', 'baz'))
