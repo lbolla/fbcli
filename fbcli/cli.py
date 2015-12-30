@@ -116,13 +116,13 @@ class Alias(object):
 
     @property
     def cmd(self):
-        return COMMANDS.get(self.cmdname)
+        cmd = COMMANDS.get(self.cmdname)
+        assert cmd is not None, 'Unknown command {}'.format(self.cmdname)
+        return cmd
 
     def __call__(self, *args):
-        cmd = self.cmd
-        assert cmd is not None, 'Unknown command {}'.format(cmd)
         args = self.args + list(args)
-        return cmd(*args)
+        return self.cmd(*args)
 
     def desc(self):
         return ' '.join([self.cmdname] + self.args)
