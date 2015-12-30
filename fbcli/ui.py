@@ -125,13 +125,22 @@ def ltrunc(s, n):
 
 
 def completer(text, state):
-    from fbcli.cli import COMMANDS, LAST_SEARCH, FBShortCase, FBPerson
+    from fbcli.cli import (
+        COMMANDS, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
 
-    all_options = list(COMMANDS.keys())
-    all_options += [str(case.id) for case in FBShortCase.HISTORY]
-    all_options += [person.fullname for person in FBPerson.CACHE]
-    if LAST_SEARCH:
-        all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
+    cmd = readline.get_line_buffer().split()[0]
+
+    all_options = []
+    if cmd == 'attachment':
+        if CURRENT_CASE:
+            all_options += [str(a.id) for a in CURRENT_CASE.attachments]
+    elif cmd == 'assign':
+        all_options += [person.fullname for person in FBPerson.CACHE]
+    else:
+        all_options += list(COMMANDS.keys())
+        all_options += [str(case.id) for case in FBShortCase.HISTORY]
+        if LAST_SEARCH:
+            all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
     options = [x for x in all_options if x.startswith(text)]
     try:
