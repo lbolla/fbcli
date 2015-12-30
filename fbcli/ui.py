@@ -128,7 +128,8 @@ def completer(text, state):
     from fbcli.cli import (
         COMMANDS, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
 
-    cmd = readline.get_line_buffer().split()[0]
+    line = readline.get_line_buffer()
+    cmd = line.split()[0] if line else None
 
     all_options = []
     if cmd == 'attachment':
