@@ -90,5 +90,6 @@ class TestEditor(unittest.TestCase):
 '''
 
         with editor.writing():
-            body = open(editor.FNAME, 'r').read()
+            with open(editor.FNAME, 'r') as fid:
+                body = fid.read()
             self.assertEqual(body, expected)
