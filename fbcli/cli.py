@@ -637,7 +637,9 @@ class FBCaseSearch(FBObj):
 
     TMPL = Template('''
 {% for case in obj.shortcases %}{% raw case %}
-{% end %}''')
+{% end %}
+{{ len(obj.shortcases) }} case(s) found.
+''')
 
     logger = logging.getLogger('fb.search')
 
