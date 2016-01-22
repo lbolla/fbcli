@@ -259,6 +259,11 @@ class History(FBObj):
     def __iter__(self):
         return iter(self._history)
 
+    def back(self):
+        if len(self._history) > 1:
+            return self._history[1]
+        return None
+
 
 class FBCase(FBObj):
 
@@ -1196,15 +1201,25 @@ def raw(*args):
 
 @command('history', 'hist', 'h')
 def history():
-    '''Show the most recently viewed cases, most recent first'''
+    '''Show the most recently viewed cases, most recent first.'''
     print(FBShortCase.HISTORY)
 
 
 @command('lastsearch')
 def lastsearch():
-    '''Show the last search'''
+    '''Show the last search.'''
     if LAST_SEARCH:
         print(LAST_SEARCH)
+
+
+@command('back')
+def previous_case():
+    '''Show the previous in history.'''
+    case = FBShortCase.HISTORY.back()
+    if case is None:
+        print("No previous case")
+    else:
+        show(case.id)
 
 
 @command('ipython')
