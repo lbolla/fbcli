@@ -444,13 +444,13 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             **self._clean_kwargs(kwargs))
         self.reset()
 
-    def amend(self, **kwargs):
-        self.assert_operation('edit')
-        FB.edit(
-            ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            ixBugEvent=self.last_event.id,
-            **self._clean_kwargs(kwargs))
-        self.reset()
+    # def amend(self, **kwargs):
+    #     self.assert_operation('edit')
+    #     FB.edit(
+    #         ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
+    #         ixBugEvent=self.last_event.id,
+    #         **self._clean_kwargs(kwargs))
+    #     self.reset()
 
     def resolve(self, **kwargs):
         self.assert_operation('resolve')
@@ -897,6 +897,7 @@ def assign(*args):
     >>> assign Lorenzo Bolla
     '''
     assert_operation('assign')
+    assert len(args) > 0, 'No assignee'
     person = ' '.join(args)
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
@@ -1144,19 +1145,19 @@ def operations():
         ' '.join(CURRENT_CASE.operations)))
 
 
-@command('amend')
-def amend():
-    '''Amend last comment.
+# @command('amend')
+# def amend():
+#     '''Amend last comment.
 
-    Example:
-    >>> amend
-'''
-    assert_current()
-    body = CURRENT_CASE.last_event.comment + '\n\n'
-    with editor.writing(header=body) as text:
-        editor.abort_if_empty(text)
-        params = text.get_params_for_comment()
-        CURRENT_CASE.amend(**params)
+#     Example:
+#     >>> amend
+# '''
+#     assert_current()
+#     body = CURRENT_CASE.last_event.comment + '\n\n'
+#     with editor.writing(header=body) as text:
+#         editor.abort_if_empty(text)
+#         params = text.get_params_for_comment()
+#         CURRENT_CASE.amend(**params)
 
 
 def _parse_kwargs(args_):
