@@ -129,7 +129,7 @@ class Alias(object):
 
     def help(self):
         return 'Alias for: {}\n\n{}'.format(
-            ui.white(self.desc()), self.cmd.help())
+            ui.boldwhite(self.desc()), self.cmd.help())
 
 
 class FBObj(object):
@@ -274,12 +274,12 @@ class FBCase(FBObj):
 {% raw ui.status(obj.status) %} - \
 {% raw ui.priority(obj.priority) %} - \
 {% raw ui.darkgray(obj.milestone) %} - \
-Opened by {% raw ui.brown(obj.opened_by.fullname) %} - \
+Opened by {% raw ui.yellow(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
 {% if obj.children_ids %}Children {{ obj.children_ids }} {% end %}\
 {% if obj.related_ids %}See also {{ obj.related_ids }}{% end %}
-{% raw ui.white(obj.permalink) %}
+{% raw ui.boldwhite(obj.permalink) %}
 {{ ui.hl1}}
 {% for event in obj.events %}
 {{ ui.hl2 }}
@@ -501,7 +501,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 class FBLink(FBObj):
 
     TMPL = Template(
-        '''{{ ui.linkid(obj.id) }} {% raw ui.purple(obj.url) %}''')
+        '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
 
     def __init__(self, id_, url):
         self.id = id_
@@ -514,7 +514,7 @@ class FBLink(FBObj):
 class FBAttachment(FBObj):
 
     TMPL = Template(
-        '''{{ ui.attachmentid(obj.id) }} {{ ui.purple(obj.filename) }}''')
+        '''{{ ui.attachmentid(obj.id) }} {{ ui.magenta(obj.filename) }}''')
 
     def __init__(self, attachment):
         self._attachment = attachment
@@ -550,7 +550,8 @@ class FBBugEvent(FBObj):
 
     TMPL = Template(
         '''{{ ui.eventid(obj.id) }} {{ obj.dt }} - {{ obj.person }}
-{% raw ui.white(ui.html_unescape(obj.desc)) %}
+{% raw ui.boldwhite(ui.html_unescape(obj.desc)) %} \
+{% raw ui.darkgray(obj.changes) %}
 {% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
 {% raw a %}{% end %}{% end %}
 ''')
@@ -573,6 +574,10 @@ class FBBugEvent(FBObj):
     @property
     def desc(self):
         return self._event.evtDescription.get_text(strip=True)
+
+    @property
+    def changes(self):
+        return self._event.sChanges.get_text(strip=True)
 
     @property
     def comment(self):
@@ -735,8 +740,10 @@ class FBMilestone(FBObj):
 
 
 def get_prompt():
-    return ui.cyan('%s>>> ' % (
-        '[%s] ' % CURRENT_CASE.id if CURRENT_CASE else ''), readline_safe=True)
+    p = ui.cyan('>>> ', readline_safe=True)
+    if CURRENT_CASE is not None:
+        p = ui.caseid(CURRENT_CASE.id) + ' ' + p
+    return p
 
 
 @command('logon', 'login')
@@ -1264,14 +1271,14 @@ def create_aliases():
     $HOME/.fbrc or in the current directory.
 
     Example of .fbrc file:
-    
+
         [aliases]
-        myalias = search assignedto:me status:active
+        myalias = search assignedto:me status:open
 
     '''
 
     # Default aliases
-    alias('mycases', 'search assignedTo:me status:active')
+    alias('mycases', 'search assignedTo:me status:open')
 
     # User-defined aliases
     cp = configparser.ConfigParser()

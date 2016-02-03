@@ -51,7 +51,7 @@ def status(s):
     color_map = {
         'active': green,
         'testing': yellow,
-        'needs additional': purple,
+        'needs additional': magenta,
         'resolved': gray,
         'closed': darkgray,
     }
@@ -65,11 +65,11 @@ def status(s):
 
 def priority(s):
     color_map = {
-        'blocker': lightred,
-        'critical': lightred,
-        'high priority': red,
+        'blocker': boldred,
+        'critical': boldred,
+        'high priority': lightred,
         'need to fix soon': red,
-        'need to fix': gray,
+        'need to fix': white,
         'fix if time': gray,
         'for consideration': darkgray,
     }
@@ -82,6 +82,8 @@ def priority(s):
 
 
 def _id(color, s, ljust=None, rjust=None):
+    if s is None:
+        return
     id_ = '[{}]'.format(s)
     if ljust is not None:
         id_ = id_.ljust(ljust)
@@ -106,9 +108,9 @@ def setup_win():
     '''Setup globals that depend on window size.'''
     global hl1, hl2
 
-    height, width = _get_hw()
-    hl1 = yellow('=' * width)
-    hl2 = brown('-' * width)
+    _height, width = _get_hw()
+    hl1 = boldyellow('=' * width)
+    hl2 = yellow('-' * width)
 
 
 def sigwinch_handler(sig, stack_frame):
@@ -175,26 +177,32 @@ def html_unescape(s):
 
 
 # http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
+# http://misc.flogisoft.com/bash/tip_colors_and_formatting
 black = partial(colorize, '0;30')
-red = partial(colorize, '0;31')
-green = partial(colorize, '0;32')
-brown = partial(colorize, '0;33')
 blue = partial(colorize, '0;34')
-purple = partial(colorize, '0;35')
 cyan = partial(colorize, '0;36')
+darkgray = partial(colorize, '0;90')
 gray = partial(colorize, '0;37')
-darkgray = partial(colorize, '1;30')
-lightred = partial(colorize, '1;31')
-lightgreen = partial(colorize, '1;32')
-yellow = partial(colorize, '1;33')
-lightpurple = partial(colorize, '1;35')
-lightcyan = partial(colorize, '1;36')
-white = partial(colorize, '1;37')
+green = partial(colorize, '0;32')
+magenta = partial(colorize, '0;35')
+red = partial(colorize, '0;31')
+white = partial(colorize, '0;97')
+yellow = partial(colorize, '0;33')
 
-caseid = partial(_id, lightcyan)
+lightcyan = partial(colorize, '0;96')
+lightgreen = partial(colorize, '0;92')
+lightmagenta = partial(colorize, '0;95')
+lightred = partial(colorize, '0;91')
+
+boldcyan = partial(colorize, '1;36')
+boldred = partial(colorize, '1;31')
+boldwhite = partial(colorize, '1;37')
+boldyellow = partial(colorize, '1;33')
+
+caseid = partial(_id, boldcyan)
 eventid = partial(_id, darkgray)
-linkid = partial(_id, lightpurple)
-attachmentid = partial(_id, lightpurple)
+linkid = partial(_id, lightmagenta)
+attachmentid = partial(_id, lightmagenta)
 
 setup_win()
 # React on window's resizes
