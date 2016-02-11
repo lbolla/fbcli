@@ -81,7 +81,7 @@ def priority(s):
     return s
 
 
-def _id(color, s, ljust=None, rjust=None):
+def _id(color, s, ljust=None, rjust=None, **kwargs):
     if s is None:
         return
     id_ = '[{}]'.format(s)
@@ -89,7 +89,7 @@ def _id(color, s, ljust=None, rjust=None):
         id_ = id_.ljust(ljust)
     if rjust is not None:
         id_ = id_.rjust(rjust)
-    return color(id_)
+    return color(id_, **kwargs)
 
 
 def title(s):

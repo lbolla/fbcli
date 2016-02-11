@@ -551,7 +551,8 @@ class FBBugEvent(FBObj):
     TMPL = Template(
         '''{{ ui.eventid(obj.id) }} {{ obj.dt }} - {{ obj.person }}
 {% raw ui.boldwhite(ui.html_unescape(obj.desc)) %} \
-{% raw ui.darkgray(obj.changes) %}
+{% for change in obj.changes %}
+{% raw ui.darkgray(' - ' + change) %}{% end %}
 {% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
 {% raw a %}{% end %}{% end %}
 ''')
@@ -577,7 +578,10 @@ class FBBugEvent(FBObj):
 
     @property
     def changes(self):
-        return self._event.sChanges.get_text(strip=True)
+        return filter(None, [
+            c.strip()
+            for c in self._event.sChanges.get_text(strip=True).splitlines()
+        ])
 
     @property
     def comment(self):
@@ -742,7 +746,7 @@ class FBMilestone(FBObj):
 def get_prompt():
     p = ui.cyan('>>> ', readline_safe=True)
     if CURRENT_CASE is not None:
-        p = ui.caseid(CURRENT_CASE.id) + ' ' + p
+        p = ui.caseid(CURRENT_CASE.id, readline_safe=True) + ' ' + p
     return p
 
 
