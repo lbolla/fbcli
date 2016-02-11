@@ -146,7 +146,7 @@ def completer(text, state):
         if LAST_SEARCH:
             all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
-    options = [x for x in all_options if x.startswith(text)]
+    options = [x for x in all_options if text in x]
     try:
         return options[state]
     except IndexError:
