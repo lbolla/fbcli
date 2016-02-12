@@ -57,14 +57,11 @@ def set_last_search(search):
     LAST_SEARCH = search
 
 
-def command(*names):
+def command(name):
     logger = logging.getLogger('fb.cmd')
 
     def wrapper(f):
-        global COMMANDS
-
-        for name in names:
-            COMMANDS[name] = Command(f)
+        COMMANDS[name] = Command(f)
 
         @wraps(f)
         def helper(*args, **kwargs):
@@ -77,7 +74,6 @@ def command(*names):
 
 
 def alias(name, cmdline):
-    global ALIASES
     ALIASES[name] = a = Alias(cmdline)
     return a
 
@@ -750,7 +746,7 @@ def get_prompt():
     return p
 
 
-@command('logon', 'login')
+@command('logon')
 def logon():
     '''Logon to FB API.
 
@@ -764,7 +760,7 @@ def logon():
     return set_current_user(FBPerson.get_by_email(FB.current_user))
 
 
-@command('logoff', 'logout')
+@command('logoff')
 def logoff():
     '''Logoff from FB API.
 
@@ -775,7 +771,7 @@ def logoff():
     return set_current_user(None)
 
 
-@command('help', '?')
+@command('help')
 def help_(*args):
     '''Show help.
 
@@ -813,7 +809,7 @@ def whoami():
     print(CURRENT_USER)
 
 
-@command('show', 's')
+@command('show')
 def show(ixBug=None):
     '''Show the current ticket.
 
@@ -829,7 +825,7 @@ def show(ixBug=None):
         print(case)
 
 
-@command('reload', 'r')
+@command('reload')
 def reload_():
     '''Reload current ticket.
 
@@ -868,7 +864,7 @@ def wontfix():
         CURRENT_CASE.resolve(**params)
 
 
-@command('duplicate', 'dup')
+@command('duplicate')
 def duplicate():
     '''Resolve the current ticket as "duplicate".'''
     assert_operation('resolve')
@@ -915,7 +911,7 @@ def assign(*args):
         CURRENT_CASE.assign(person, **params)
 
 
-@command('comment', 'c')
+@command('comment')
 def comment():
     '''Add a comment to the current ticket.
 
@@ -978,7 +974,7 @@ def search(*args):
     print(rs)
 
 
-@command('browse', 'b')
+@command('browse')
 def browse():
     '''Browse current case in $BROWSER.
 
@@ -1211,7 +1207,7 @@ def raw(*args):
     print(result.prettify())
 
 
-@command('history', 'hist', 'h')
+@command('history')
 def history():
     '''Show the most recently viewed cases, most recent first.'''
     print(FBShortCase.HISTORY)
@@ -1249,7 +1245,7 @@ def ipython():
     IPython.embed()
 
 
-@command('quit', 'exit', 'bye')
+@command('quit')
 def quit_():
     '''Quit.
 
@@ -1282,7 +1278,17 @@ def create_aliases():
     '''
 
     # Default aliases
+    alias('?', 'help')
+    alias('b', 'browse')
+    alias('bye', 'quit')
+    alias('c', 'comment')
+    alias('exit', 'quit')
+    alias('h', 'history')
+    alias('login', 'logon')
+    alias('logout', 'logoff')
     alias('mycases', 'search assignedTo:me status:open')
+    alias('r', 'reload')
+    alias('s', 'show')
 
     # User-defined aliases
     cp = configparser.ConfigParser()
