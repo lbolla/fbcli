@@ -1243,7 +1243,8 @@ def ipython():
 '''
 
     import IPython
-    IPython.embed()
+    with ui.no_readline_ctx():
+        IPython.embed()
 
 
 @command('quit')

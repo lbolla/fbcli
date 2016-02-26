@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from functools import partial, wraps
 import atexit
+import contextlib
 import fcntl
 import os
 import readline
@@ -12,6 +13,9 @@ import termios
 
 import six
 from six.moves import html_parser
+
+
+READLINE_HISTFILE = os.path.join(os.path.expanduser("~"), ".fbcli_history")
 
 
 def colorize(color, s, readline_safe=False):
@@ -166,10 +170,18 @@ def ignoring_IOerror(f):
 def init_readline():
     readline.set_completer(completer)
     readline.parse_and_bind('tab: complete')
-    histfile = os.path.join(os.path.expanduser("~"), ".fbcli_history")
-    ignoring_IOerror(readline.read_history_file)(histfile)
-    atexit.register(ignoring_IOerror(readline.write_history_file), histfile)
-    del histfile
+    ignoring_IOerror(readline.read_history_file)(READLINE_HISTFILE)
+    atexit.register(
+        ignoring_IOerror(readline.write_history_file), READLINE_HISTFILE)
+
+
+@contextlib.contextmanager
+def no_readline_ctx():
+    readline.write_history_file(READLINE_HISTFILE)
+    try:
+        yield
+    finally:
+        init_readline()
 
 
 def html_unescape(s):
