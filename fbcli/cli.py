@@ -1174,7 +1174,7 @@ def _parse_kwargs(args_):
     line = ' '.join(args_)
     for kv in line.split(','):
         k, v = kv.split('=')
-        kwargs[k] = v
+        kwargs[k.strip()] = v.strip()
     return kwargs
 
 
@@ -1198,7 +1198,8 @@ def raw(*args):
     '''Execute a command on FB API and return raw result.
 
     Example:
-    >>> raw search q=1  # executes FB.search(q=1)
+    >>> raw search q=1  # executes FB.search(q="1")
+    >>> raw search q=1, cols=events  # executes FB.search(q="1", cols="events")
 
     Mostly used for debugging.'''
     cmd, args_ = args[0], args[1:]
