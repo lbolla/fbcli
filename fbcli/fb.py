@@ -1,11 +1,13 @@
 from functools import wraps
 import getpass
+import json
 import logging
 import os
 import importlib
 
 from six.moves import input
 from six.moves.urllib_parse import urljoin
+from six.moves.urllib.request import urlopen
 
 import fogbugz
 
@@ -83,3 +85,11 @@ class FBClient(object):
 
     def full_url(self, path):
         return urljoin(self._fburl, path)
+
+    def checkins(self, ixbug):
+        '''The API does not provide a call for this.'''
+        base_url = 'https://yougov.kilnhg.com/fogbugz/casecheckins/{}?token={}'
+        url = base_url.format(ixbug, self.current_token)
+        r = urlopen(url)
+        assert r.code == 200
+        return json.loads(r.read().decode())

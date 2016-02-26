@@ -11,6 +11,7 @@ import re
 import sys
 import tempfile
 
+import six
 from six.moves import input, urllib, configparser
 
 from tornado.template import Template
@@ -421,6 +422,17 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.id,
             self.title)
 
+    @property
+    def checkins(self):
+        if not hasattr(self, '_checkins'):
+            self._checkins = []
+            data = FB.checkins(self.id)
+            i = 0
+            for v in six.itervalues(data['changesets']):
+                checkin = FBCheckin(i, v)
+                self._checkins.append(checkin)
+        return self._checkins
+
     @staticmethod
     def _clean_kwargs(kwargs):
         # Empty sEvent is rendered as 'None': no need to submit
@@ -737,6 +749,45 @@ class FBMilestone(FBObj):
     @property
     def project(self):
         return self._milestone.sProject.get_text(strip=True)
+
+
+class FBCheckin(FBObj):
+
+    TMPL = Template('''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}
+{% raw ui.cyan(obj.date) %} {% raw ui.white(obj.author) %} \
+{% raw ui.darkgray(obj.desc) %}
+''')
+
+    def __init__(self, id_, data):
+        self.id = id_
+        self._data = data
+
+    @staticmethod
+    def _soup(html):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, 'lxml')
+
+    @property
+    def url(self):
+        return self._data.get('sUrl', 'n/a').strip()
+
+    @property
+    def author(self):
+        html = self._data.get('sAuthor') or 'n/a'
+        return self._soup(html).text.strip()
+
+    @property
+    def date(self):
+        html = self._data.get('sDate') or 'n/a'
+        return self._soup(html).text.strip()
+
+    @property
+    def desc(self):
+        html = self._data.get('sDesc') or self._data.get('sDescShort') or 'n/a'
+        return self._soup(html).text.strip()
+
+    def browse(self):
+        browser.browse(self.url)
 
 
 def get_prompt():
@@ -1229,6 +1280,29 @@ def previous_case():
         print("No previous case")
     else:
         show(case.id)
+
+
+@command('checkins')
+def checkins():
+    '''Print code checkins associated with current case.'''
+    assert_current()
+    if len(CURRENT_CASE.checkins) > 0:
+        print()
+        for checkin in CURRENT_CASE.checkins:
+            print(checkin)
+        print()
+    else:
+        print('No checkins.')
+
+
+@command('checkin')
+def checkin(icheckin):
+    '''Browse to a specific checkin.'''
+    assert_current()
+    icheckin = int(icheckin)
+    assert icheckin >= 0, 'Negative checkin index'
+    assert icheckin < len(CURRENT_CASE.checkins), 'No such checkin'
+    CURRENT_CASE.checkins[icheckin].browse()
 
 
 @command('ipython')
