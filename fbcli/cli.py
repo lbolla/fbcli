@@ -1,4 +1,5 @@
-# pylint: disable=trailing-whitespace,redefined-builtin,W0603,W0621,R0904
+# pylint: disable=too-many-lines,redefined-builtin,global-statement
+# pylint: disable=too-many-public-methods,redefined-outer-name
 
 from __future__ import print_function
 
@@ -59,14 +60,14 @@ def set_last_search(search):
 
 
 def command(name):
-    logger = logging.getLogger('fb.cmd')
+    cmdlogger = logging.getLogger('fb.cmd')
 
     def wrapper(f):
         COMMANDS[name] = Command(f)
 
         @wraps(f)
         def helper(*args, **kwargs):
-            logger.debug(f.__name__)
+            cmdlogger.debug(f.__name__)
             return f(*args, **kwargs)
 
         return helper
@@ -422,13 +423,14 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.id,
             self.title)
 
+    _checkins = None
+
     @property
     def checkins(self):
-        if not hasattr(self, '_checkins'):
+        if self._checkins is None:
             self._checkins = []
             data = FB.checkins(self.id)
-            i = 0
-            for v in six.itervalues(data['changesets']):
+            for i, v in enumerate(six.itervalues(data['changesets'])):
                 checkin = FBCheckin(i, v)
                 self._checkins.append(checkin)
         return self._checkins
@@ -754,8 +756,8 @@ class FBMilestone(FBObj):
 class FBCheckin(FBObj):
 
     TMPL = Template('''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}
-{% raw ui.cyan(obj.date) %} {% raw ui.white(obj.author) %} \
-{% raw ui.darkgray(obj.desc) %}
+{% raw ui.cyan(obj.date) %} {% raw ui.boldwhite(obj.author) %} \
+{% raw ui.white(obj.desc) %}
 ''')
 
     def __init__(self, id_, data):
@@ -1438,7 +1440,7 @@ def exec_ctx():
         quit_()
     except KeyboardInterrupt:
         pass
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         _format_exception(exc)
 
 
