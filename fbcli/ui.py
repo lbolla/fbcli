@@ -141,7 +141,7 @@ def completer(text, state):
     if cmd == 'attachment':
         if CURRENT_CASE:
             all_options += [str(a.id) for a in CURRENT_CASE.attachments]
-    elif cmd == 'assign':
+    elif cmd in ('assign', 'notify'):
         all_options += [person.fullname for person in FBPerson.CACHE]
     else:
         all_options += list(COMMANDS.keys())
@@ -150,7 +150,7 @@ def completer(text, state):
         if LAST_SEARCH:
             all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
-    options = [x for x in all_options if text in x]
+    options = [x for x in all_options if text.lower() in x.lower()]
     try:
         return options[state]
     except IndexError:

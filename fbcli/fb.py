@@ -7,7 +7,7 @@ import importlib
 
 from six.moves import input
 from six.moves.urllib_parse import urljoin
-from six.moves.urllib.request import urlopen
+from six.moves.urllib.request import Request, urlopen
 
 import fogbugz
 
@@ -91,5 +91,28 @@ class FBClient(object):
         base_url = 'https://yougov.kilnhg.com/fogbugz/casecheckins/{}?token={}'
         url = base_url.format(ixbug, self.current_token)
         r = urlopen(url)
+        assert r.code == 200
+        return json.loads(r.read().decode())
+
+    def notify(self, ixbug, ixbugeventlatest, ixPerson):
+        base_url = 'https://yougov.fogbugz.com/f/api/0/cases/{}?token={}'
+        url = base_url.format(ixbug, self.current_token)
+        payload = json.dumps({
+            'ixBug': ixbug,
+            'rgixNotify': [ixPerson],
+            'ixBugEventLatest': ixbugeventlatest,
+            'sCommand': "edit",
+            'sFormat': "plain",
+            'fCloseCase': False,
+            'rgAttachments': [],
+            'sEvent': "",
+            'sFormat': "plain",
+            'tags': [],
+        }).encode()
+        req = Request(url, data=payload, headers={
+            'Content-Length': len(payload),
+            'Content-Type': 'application/json',
+        })
+        r = urlopen(req)
         assert r.code == 200
         return json.loads(r.read().decode())

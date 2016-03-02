@@ -207,16 +207,21 @@ class FBPerson(FBObj):
         for p in cls.CACHE:
             if p.email == email:
                 return p
-        p = cls._get(sEmail=email)
-        return p
+        return cls._get(sEmail=email)
+
+    @classmethod
+    def get_by_fullname(cls, fullname):
+        for p in cls.CACHE:
+            if p.fullname == fullname:
+                return p
+        return cls._get(sFullname=fullname)
 
     @classmethod
     def get_by_id(cls, person_id):
         for p in cls.CACHE:
             if p.id == person_id:
                 return p
-        p = cls._get(ixPerson=person_id)
-        return p
+        return cls._get(ixPerson=person_id)
 
     @staticmethod
     def get_all():
@@ -489,6 +494,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             sPersonAssignedTo=person,
             **self._clean_kwargs(kwargs))
+        self.reset()
+
+    def notify(self, person, **kwargs):
+        self.edit(**kwargs)
+        FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
         self.reset()
 
     def close(self, **kwargs):
@@ -1305,6 +1315,18 @@ def checkin(icheckin):
     assert icheckin >= 0, 'Negative checkin index'
     assert icheckin < len(CURRENT_CASE.checkins), 'No such checkin'
     CURRENT_CASE.checkins[icheckin].browse()
+
+
+@command('notify')
+def notify(*args):
+    '''Notify someone of this ticket.'''
+    assert_current()
+
+    name = ' '.join(args)
+    person = FBPerson.get_by_fullname(name)
+    with editor.maybe_writing('Add a comment?') as text:
+        params = text.get_params_for_comment() if text else {}
+        CURRENT_CASE.notify(person, **params)
 
 
 @command('ipython')
