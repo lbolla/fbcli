@@ -435,7 +435,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         if self._checkins is None:
             self._checkins = []
             data = FB.checkins(self.id)
-            for i, v in enumerate(six.itervalues(data['changesets'])):
+            for i, v in enumerate(six.itervalues(data.get('changesets', {}))):
                 checkin = FBCheckin(i, v)
                 self._checkins.append(checkin)
         return self._checkins
@@ -497,7 +497,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.reset()
 
     def notify(self, person, **kwargs):
-        self.edit(**kwargs)
+        if kwargs:
+            self.edit(**kwargs)
         FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
         self.reset()
 

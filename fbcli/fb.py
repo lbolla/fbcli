@@ -5,7 +5,7 @@ import logging
 import os
 import importlib
 
-from six.moves import input
+from six.moves import input  # pylint: disable=redefined-builtin
 from six.moves.urllib_parse import urljoin
 from six.moves.urllib.request import Request, urlopen
 
@@ -77,7 +77,7 @@ class FBClient(object):
 
     @property
     def current_token(self):
-        return self._fb._token
+        return self._fb._token  # pylint: disable=protected-access
 
     def login(self):
         self.logger.debug('Logging in')
@@ -88,21 +88,21 @@ class FBClient(object):
 
     def checkins(self, ixbug):
         '''The API does not provide a call for this.'''
-        base_url = 'https://yougov.kilnhg.com/fogbugz/casecheckins/{}?token={}'
+        kilnhg_url = self._fburl.replace('.fogbugz.', '.kilnhg.')
+        base_url = urljoin(kilnhg_url, '/fogbugz/casecheckins/{}?token={}')
         url = base_url.format(ixbug, self.current_token)
         r = urlopen(url)
         assert r.code == 200
         return json.loads(r.read().decode())
 
     def notify(self, ixbug, ixbugeventlatest, ixPerson):
-        base_url = 'https://yougov.fogbugz.com/f/api/0/cases/{}?token={}'
+        base_url = self.full_url('/f/api/0/cases/{}?token={}')
         url = base_url.format(ixbug, self.current_token)
         payload = json.dumps({
             'ixBug': ixbug,
             'rgixNotify': [ixPerson],
             'ixBugEventLatest': ixbugeventlatest,
             'sCommand': "edit",
-            'sFormat': "plain",
             'fCloseCase': False,
             'rgAttachments': [],
             'sEvent': "",
