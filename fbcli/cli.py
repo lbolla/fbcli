@@ -438,6 +438,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             for i, v in enumerate(six.itervalues(data.get('changesets', {}))):
                 checkin = FBCheckin(i, v)
                 self._checkins.append(checkin)
+            self._checkins.sort(key=lambda c: c.dtUTC)
         return self._checkins
 
     @staticmethod
@@ -788,6 +789,10 @@ class FBCheckin(FBObj):
     def author(self):
         html = self._data.get('sAuthor') or 'n/a'
         return self._soup(html).text.strip()
+
+    @property
+    def dtUTC(self):
+        return self._data.get('dtUTC') or 'n/a'
 
     @property
     def date(self):
