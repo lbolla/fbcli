@@ -1,5 +1,5 @@
-from setuptools import setup, find_packages
 import sys
+from setuptools import setup, find_packages
 
 from fbcli import __version__
 
