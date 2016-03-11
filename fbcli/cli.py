@@ -35,7 +35,7 @@ ALIASES = {}
 
 
 # Poor man HTML link regex
-URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\}]*')
+URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\},]*')
 
 logger = logging.getLogger('fb.cli')
 
