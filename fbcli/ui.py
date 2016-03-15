@@ -214,7 +214,7 @@ boldyellow = partial(colorize, '1;33')
 caseid = partial(_id, boldcyan)
 eventid = partial(_id, darkgray)
 linkid = partial(_id, lightmagenta)
-attachmentid = partial(_id, lightmagenta)
+attachmentid = partial(_id, lightgreen)
 
 setup_win()
 # React on window's resizes

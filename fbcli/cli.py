@@ -392,7 +392,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def events(self):
-        return [FBBugEvent(event) for event in self._case.events]
+        return [FBBugEvent(self, event) for event in self._case.events]
 
     @property
     def last_event(self):
@@ -410,7 +410,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         ilink, links = 0, []
         for event in self.events:
             for url in event.urls:
-                link = FBLink(ilink, url)
+                link = FBLink(ilink, event, url)
                 ilink += 1
                 links.append(link)
         return links
@@ -534,8 +534,9 @@ class FBLink(FBObj):
     TMPL = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
 
-    def __init__(self, id_, url):
+    def __init__(self, id_, event, url):
         self.id = id_
+        self.event = event
         self.url = url
 
     def browse(self):
@@ -545,7 +546,7 @@ class FBLink(FBObj):
 class FBAttachment(FBObj):
 
     TMPL = Template(
-        '''{{ ui.attachmentid(obj.id) }} {{ ui.magenta(obj.filename) }}''')
+        '''{{ ui.attachmentid(obj.id) }} {{ ui.lightgreen(obj.filename) }}''')
 
     def __init__(self, attachment):
         self._attachment = attachment
@@ -588,8 +589,9 @@ class FBBugEvent(FBObj):
 {% raw a %}{% end %}{% end %}
 ''')
 
-    def __init__(self, event):
+    def __init__(self, fbcase, event):
         self._event = event
+        self._fbcase = fbcase
 
     @property
     def id(self):
@@ -615,16 +617,31 @@ class FBBugEvent(FBObj):
         ])
 
     @property
-    def comment(self):
+    def raw_comment(self):
         return self._event.s.get_text(strip=True)
 
     @property
+    def comment(self):
+        return self._linkify(self.raw_comment)
+
+    def _linkify(self, text):
+        for link in self.links:
+            text = text.replace(link.url, str(link))
+        return text
+
+    @property
     def urls(self):
-        return URL_RE.findall(self.comment)
+        return URL_RE.findall(self.raw_comment)
 
     @property
     def attachments(self):
         return [FBAttachment(a) for a in self._event.findAll('attachment')]
+
+    @property
+    def links(self):
+        return [
+            link for link in self._fbcase.links
+            if link.event.id == self.id]
 
 
 class FBShortCase(FBObj):
