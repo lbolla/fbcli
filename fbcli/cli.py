@@ -134,8 +134,10 @@ class FBObj(object):
 
     TMPL = None
 
-    def to_string(self):
-        return self.TMPL.generate(
+    def to_string(self, tmpl=None):
+        if tmpl is None:
+            tmpl = self.TMPL
+        return tmpl.generate(
             obj=self,
             ui=ui,
         ).decode('utf-8')
@@ -270,7 +272,7 @@ class History(FBObj):
 
 class FBCase(FBObj):
 
-    TMPL = Template('''
+    TMPL_HEADER_TEXT = '''
 {{ ui.hl1 }}
 {% raw ui.caseid(obj.id) %} ({% raw obj.project %}/{% raw obj.area %}) \
 {% raw ui.title(obj.title) %}
@@ -284,10 +286,14 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.related_ids %}See also {{ obj.related_ids }}{% end %}
 {% raw ui.boldwhite(obj.permalink) %}
 {{ ui.hl1}}
-{% for event in obj.events %}
+'''
+    TMPL_EVENTS_TEXT = '''{% for event in obj.events %}
 {{ ui.hl2 }}
 {% raw event %}{% end %}
-''')
+'''
+
+    TMPL = Template(TMPL_HEADER_TEXT + TMPL_EVENTS_TEXT)
+    TMPL_HEADER = Template(TMPL_HEADER_TEXT)
 
     def __init__(self, case):
         self._case = case
@@ -512,6 +518,9 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     def browse(self):
         browser.browse(self.permalink)
+
+    def header(self):
+        return self.to_string(self.TMPL_HEADER)
 
     @classmethod
     def new(cls, **kwargs):
@@ -892,6 +901,17 @@ def show(ixBug=None):
     else:
         case = FBCase.get_by_id(int(ixBug))
         print(case)
+
+
+@command('header')
+def header(ixBug=None):
+    '''Show the header of the current ticket.
+
+    Example:
+    >>> header  # shows the current ticket
+    '''
+    assert_current()
+    print(CURRENT_CASE.header())
 
 
 @command('reload')
@@ -1395,6 +1415,7 @@ def create_aliases():
     alias('mycases', 'search assignedTo:me status:open')
     alias('r', 'reload')
     alias('s', 'show')
+    alias('sh', 'header')
 
     # User-defined aliases
     cp = configparser.ConfigParser()

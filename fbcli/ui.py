@@ -56,7 +56,7 @@ def status(s):
         'active': green,
         'testing': yellow,
         'needs additional': magenta,
-        'resolved': gray,
+        'resolved': cyan,
         'closed': darkgray,
     }
     s_ = s.strip().lower()
