@@ -281,9 +281,10 @@ class FBCase(FBObj):
 {% raw ui.darkgray(obj.milestone) %} - \
 Opened by {% raw ui.yellow(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
-{% if obj.parent_id %}Parent {{ obj.parent_id }} {% end %}\
-{% if obj.children_ids %}Children {{ obj.children_ids }} {% end %}\
-{% if obj.related_ids %}See also {{ obj.related_ids }}{% end %}
+{% if obj.parent_id %}Parent {% raw ui.caseid(obj.parent_id) %} {% end %}\
+{% if obj.children_ids %}Children {% raw ' '.join(ui.caseid(c) for c in  obj.children_ids) %} {% end %}\
+{% if obj.related_ids %}See also {% raw ' '.join(ui.caseid(c) for c in  obj.related_ids) %}{% end %}\
+{% if obj.duplicate_of_id %}Duplicate of {% raw ui.caseid(obj.duplicate_of_id) %}{% end %}
 {% raw ui.boldwhite(obj.permalink) %}
 {{ ui.hl1}}
 '''
@@ -322,6 +323,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'ixPersonOpenedBy',
             'ixBugParent',
             'ixBugChildren',
+            'ixBugOriginal',
             'ixRelatedBugs',
             'tags',
             'events',
@@ -375,6 +377,12 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def parent_id(self):
         return int(self._case.ixBugParent.get_text(strip=True))
+
+    @property
+    def duplicate_of_id(self):
+        id_ = self._case.ixBugOriginal.get_text(strip=True)
+        if id_:
+            return int(id_)
 
     @property
     def children_ids(self):
