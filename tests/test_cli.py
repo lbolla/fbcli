@@ -82,8 +82,9 @@ class TestFBCase(unittest.TestCase):
 class TestFBBugEvent(unittest.TestCase):
 
     def test_utf8(self):
+        parent = cli.FBCase(get_fixture('FB41675.xml'))
         xml = get_fixture('FB38451.xml')
-        fb = cli.FBBugEvent(xml)
+        fb = cli.FBBugEvent(parent, xml)
         self.assertTrue(fb.comment.startswith(u"Yes. \\xa0I'll"))
 
 
