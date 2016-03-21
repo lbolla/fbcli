@@ -282,9 +282,12 @@ class FBCase(FBObj):
 Opened by {% raw ui.yellow(obj.opened_by.fullname) %} - \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {% raw ui.caseid(obj.parent_id) %} {% end %}\
-{% if obj.children_ids %}Children {% raw ' '.join(ui.caseid(c) for c in  obj.children_ids) %} {% end %}\
-{% if obj.related_ids %}See also {% raw ' '.join(ui.caseid(c) for c in  obj.related_ids) %}{% end %}\
-{% if obj.duplicate_of_id %}Duplicate of {% raw ui.caseid(obj.duplicate_of_id) %}{% end %}
+{% if obj.children_ids %}Children \
+{% raw ' '.join(ui.caseid(c) for c in  obj.children_ids) %} {% end %}\
+{% if obj.related_ids %}See also \
+{% raw ' '.join(ui.caseid(c) for c in  obj.related_ids) %}{% end %}\
+{% if obj.duplicate_of_id %}Duplicate of \
+{% raw ui.caseid(obj.duplicate_of_id) %}{% end %}
 {% raw ui.boldwhite(obj.permalink) %}
 {{ ui.hl1}}
 '''
@@ -929,7 +932,7 @@ def show(ixBug=None):
 
 
 @command('header')
-def header(ixBug=None):
+def header():
     '''Show the header of the current ticket.
 
     Example:
