@@ -637,7 +637,7 @@ class FBBugEvent(FBObj):
 
     def _linkify(self, text):
         for link in self.links:
-            text = text.replace(link.url, str(link))
+            text = text.replace(link.url, str(link), 1)
         return text
 
     @property
