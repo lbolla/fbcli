@@ -559,6 +559,8 @@ class FBAttachment(FBObj):
     TMPL = Template(
         '''{{ ui.attachmentid(obj.id) }} {{ ui.lightgreen(obj.filename) }}''')
 
+    INVALID_CHARS_RE = re.compile(r'[\/*?|]')
+
     def __init__(self, attachment):
         self._attachment = attachment
 
@@ -577,12 +579,16 @@ class FBAttachment(FBObj):
         url = self._attachment.sURL.get_text(strip=True).replace('&amp;', '&')
         return FB.full_url(url)
 
+    @property
+    def safe_filename(self):
+        return self.INVALID_CHARS_RE.sub('_', self.filename)
+
     def download(self):
         url = self.url + '&token={}'.format(FB.current_token)
         r = urllib.request.urlopen(url)
         assert r.getcode() == 200, 'Failed to download {}'.format(url)
 
-        fname = os.path.join(tempfile.gettempdir(), self.filename)
+        fname = os.path.join(tempfile.gettempdir(), self.safe_filename)
         with open(fname, 'wb') as fid:
             fid.write(r.read())
         print('Saved to', fname)
