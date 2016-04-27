@@ -445,18 +445,15 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.id,
             self.title)
 
-    _checkins = None
-
     @property
     def checkins(self):
-        if self._checkins is None:
-            self._checkins = []
-            data = FB.checkins(self.id)
-            for i, v in enumerate(six.itervalues(data.get('changesets', {}))):
-                checkin = FBCheckin(i, v)
-                self._checkins.append(checkin)
-            self._checkins.sort(key=lambda c: c.dtUTC)
-        return self._checkins
+        checkins = []
+        data = FB.checkins(self.id)
+        for i, v in enumerate(six.itervalues(data.get('changesets', {}))):
+            checkin = FBCheckin(i, v)
+            checkins.append(checkin)
+        checkins.sort(key=lambda c: c.dtUTC)
+        return checkins
 
     @staticmethod
     def _clean_kwargs(kwargs):
