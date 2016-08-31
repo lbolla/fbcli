@@ -33,12 +33,24 @@ class FBClient(object):
 
     def __init__(self):
         self.__fb = None
+
         self._fburl = from_env_or_ask('FBURL', 'Fogbugz URL: ')
         self._fbuser = from_env_or_ask('FBUSER', 'Username: ')
-        self._fbpass = (
-            self._password_from_keyring() or
-            from_env_or_ask('FBPASS', 'Password: ', True)
-        )
+
+        self._fbtoken = None
+        self._fbpass = None
+
+        if 'FBTOKEN' in os.environ:
+            self._fbtoken = os.environ['FBTOKEN']
+        else:
+            self._fbpass = (
+                self._password_from_keyring() or
+                from_env_or_ask('FBPASS', 'Password: ', True)
+            )
+
+    @property
+    def uses_token(self):
+        return self._fbtoken is not None
 
     def _password_from_keyring(self):
         try:
@@ -51,7 +63,10 @@ class FBClient(object):
     def _fb(self):
         # Get connection lazily, to simplify testing
         if self.__fb is None:
-            self.__fb = fogbugz.FogBugz(self._fburl)
+            if self.uses_token:
+                self.__fb = fogbugz.FogBugz(self._fburl, self._fbtoken)
+            else:
+                self.__fb = fogbugz.FogBugz(self._fburl)
         return self.__fb
 
     def retrying(self, f):
@@ -80,8 +95,9 @@ class FBClient(object):
         return self._fb._token  # pylint: disable=protected-access
 
     def login(self):
-        self.logger.debug('Logging in')
-        self._fb.logon(self._fbuser, self._fbpass)
+        if not self.uses_token:
+            self.logger.debug('Logging in')
+            self._fb.logon(self._fbuser, self._fbpass)
 
     def full_url(self, path):
         return urljoin(self._fburl, path)
