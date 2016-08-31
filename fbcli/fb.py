@@ -98,6 +98,15 @@ class FBClient(object):
         if not self.uses_token:
             self.logger.debug('Logging in')
             self._fb.logon(self._fbuser, self._fbpass)
+        else:
+            self.logger.debug('Not logging in: using token')
+
+    def logout(self):
+        if not self.uses_token:
+            self.logger.debug('Logging out')
+            self._fb.logoff()
+        else:
+            self.logger.debug('Not logging out: using token')
 
     def full_url(self, path):
         return urljoin(self._fburl, path)

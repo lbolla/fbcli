@@ -877,7 +877,7 @@ def logoff():
     Example:
     >>> logoff
     '''
-    FB.logoff()
+    FB.logout()
     return set_current_user(None)
 
 
