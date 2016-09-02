@@ -17,6 +17,18 @@ Get help from `fb`:
     >>> help
     >>> help <command>  # for more
 
+# Configuration
+
+`fbcli` can make use of several environmental variables:
+
+- FBURL: the URL to FogBugz, e.g. `https://<your_company>.fogbugz.com/`
+- FBUSER: your username, e.g. lorenzo.bolla@example.com
+- FBTOKEN: your FogBugz API token, e.g. abcdefghilmnopqrstuvz
+- FBPASS: your FogBugz password
+
+If you have 2-factor authentication enabled on your FogBugz account,
+you can't use username/password, you must use the token.
+
 # Tutorial
 
 A quick video tutorial is available [here](https://www.youtube.com/watch?v=2tunk7HD0GY).
