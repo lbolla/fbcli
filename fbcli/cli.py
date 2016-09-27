@@ -1370,9 +1370,11 @@ def checkin(icheckin):
     '''Browse to a specific checkin.'''
     assert_current()
     icheckin = int(icheckin)
-    assert icheckin >= 0, 'Negative checkin index'
-    assert icheckin < len(CURRENT_CASE.checkins), 'No such checkin'
-    CURRENT_CASE.checkins[icheckin].browse()
+    for c in CURRENT_CASE.checkins:
+        if c.id == icheckin:
+            c.browse()
+            return
+    assert False, 'Checkin {} not found'.format(icheckin)
 
 
 @command('notify')
