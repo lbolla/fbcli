@@ -35,8 +35,7 @@ ALIASES = {}
 
 
 # Poor man HTML link regex
-# Note: FogBugz does not seem to escape '()' in its URLs...
-URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\[\]\{\},]*')
+URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\},]*')
 
 logger = logging.getLogger('fb.cli')
 
