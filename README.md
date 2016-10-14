@@ -48,10 +48,9 @@ Run tests for Py27, Py35 and PyPy with:
 
 # References
 
+- FogBugz API Intro: https://developers.fogbugz.com/default.asp?W194
+- FogBugz API Reference: http://help.fogcreek.com/8202/xml-api
 - FogBugzPy: https://developers.fogbugz.com/?W199
-- FogBugz XML API:
-  - https://developers.fogbugz.com/default.asp?W194
-  - http://help.fogcreek.com/8202/xml-api
 
 # Acknowledgements
 
