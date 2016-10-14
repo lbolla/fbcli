@@ -276,10 +276,11 @@ class FBCase(FBObj):
 {{ ui.hl1 }}
 {% raw ui.caseid(obj.id) %} ({% raw obj.project %}/{% raw obj.area %}) \
 {% raw ui.title(obj.title) %}
-{% raw ui.status(obj.status) %} - \
-{% raw ui.priority(obj.priority) %} - \
-{% raw ui.darkgray(obj.milestone) %} - \
-Opened by {% raw ui.yellow(obj.opened_by.fullname) %} - \
+{% raw ui.status(obj.status) %} | \
+{% raw ui.priority(obj.priority) %} | \
+{% raw ui.darkgray(obj.milestone) %} | \
+Opened by {% raw ui.yellow(obj.opened_by.fullname) %} \
+on {% raw obj.dtopened %} | \
 Assigned to {% raw ui.red(obj.assigned_to) %}
 {% if obj.parent_id %}Parent {% raw ui.caseid(obj.parent_id) %} {% end %}\
 {% if obj.children_ids %}Children \
@@ -328,6 +329,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'ixBugChildren',
             'ixBugOriginal',
             'ixRelatedBugs',
+            'dtOpened',
             'tags',
             'events',
         ]
@@ -372,6 +374,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def opened_by(self):
         return FBPerson.get_by_id(self.opened_by_id)
+
+    @property
+    def dtopened(self):
+        return self._case.dtOpened.get_text(strip=True)[:10]
 
     @property
     def milestone(self):
@@ -935,14 +941,19 @@ def show(ixBug=None):
 
 
 @command('header')
-def header():
+def header(ixBug=None):
     '''Show the header of the current ticket.
 
     Example:
-    >>> header  # shows the current ticket
+    >>> header  # shows the current ticket's header
+    >>> header 123  # shows ticket 123's header
     '''
-    assert_current()
-    print(CURRENT_CASE.header())
+    if ixBug is None:
+        assert_current()
+        print(CURRENT_CASE.header())
+    else:
+        case = FBCase.get_by_id(int(ixBug))
+        print(case.header())
 
 
 @command('reload')
