@@ -1303,9 +1303,26 @@ def _parse_kwargs(args_):
     if not args_:
         return kwargs
     line = ' '.join(args_)
-    for kv in line.split(','):
-        k, v = kv.split('=')
+    matches = list(re.finditer(r'\w+=', line))
+    if not matches:
+        return kwargs
+
+    m0 = matches[0]
+    for m1 in matches[1:]:
+        k = m0.group().replace('=', '')
+        _s0, e0 = m0.span()
+        s1, _e1 = m1.span()
+        v = line[e0: s1]
         kwargs[k.strip()] = v.strip()
+        m0 = m1
+
+    # Last token
+    k = m0.group().replace('=', '')
+    _s0, e0 = m0.span()
+    s1 = len(line)
+    v = line[e0: s1]
+    kwargs[k.strip()] = v.strip()
+
     return kwargs
 
 
@@ -1316,8 +1333,7 @@ def edit(*args):
     Example:
     >>> edit sFixFor=ASAP
     >>> edit ixBugParent=1234
-    >>> edit sTags=mytag
-    >>> edit sStatus=testing
+    >>> edit sTags=my tag sStatus=testing
 '''
     assert_operation('edit')
     kwargs = _parse_kwargs(args)
@@ -1330,7 +1346,7 @@ def raw(*args):
 
     Example:
     >>> raw search q=1  # executes FB.search(q="1")
-    >>> raw search q=1, cols=events  # executes FB.search(q="1", cols="events")
+    >>> raw search q=1 cols=events  # executes FB.search(q="1", cols="events")
 
     Mostly used for debugging.'''
     cmd, args_ = args[0], args[1:]

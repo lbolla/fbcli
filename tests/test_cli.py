@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=R0201
+# pylint: disable=no-self-use,protected-access
 
 from __future__ import unicode_literals
 
@@ -102,8 +102,29 @@ class TestAlias(unittest.TestCase):
     def test_additional_args(self):
 
         @cli.command('foo')
-        def foo_cmd(*args):
+        def _foo_cmd(*args):
             return args
 
         a = cli.alias('foo_alias', 'foo bar')
         self.assertEqual(a('baz'), ('bar', 'baz'))
+
+
+class TestKW(unittest.TestCase):
+
+    def test_parse_on_kwargs(self):
+
+        s = 'stitle=title'.split()
+        self.assertEqual(cli._parse_kwargs(s), {
+            'stitle': 'title',
+        })
+
+    def test_parse_multiple_kwargs(self):
+
+        s = (
+            'stitle=title with spaces '
+            'spriority=priority with more spaces'
+        ).split()
+        self.assertEqual(cli._parse_kwargs(s), {
+            'stitle': 'title with spaces',
+            'spriority': 'priority with more spaces',
+        })
