@@ -128,3 +128,10 @@ class TestKW(unittest.TestCase):
             'stitle': 'title with spaces',
             'spriority': 'priority with more spaces',
         })
+
+    def test_parse_for_api(self):
+
+        s = 'Title=title'.split()
+        self.assertEqual(cli._api_kwargs(s), {
+            'sTitle': 'title',
+        })

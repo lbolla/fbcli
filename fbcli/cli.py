@@ -1342,17 +1342,36 @@ def _parse_kwargs(args_):
     return kwargs
 
 
+def _to_api_kwargs(kwargs):
+    translate = {
+        'fixfor': 'sFixFor',
+        'parent': 'ixBugParent',
+        'title': 'sTitle',
+        'status': 'sStatus',
+        'tags': 'sTags',
+    }
+    return {
+        translate.get(k.lower(), k): v for k, v in kwargs.items()
+    }
+
+
+def _api_kwargs(args_):
+    return _to_api_kwargs(_parse_kwargs(args_))
+
+
 @command('edit')
 def edit(*args):
     '''Generic edit of current case.
 
     Example:
     >>> edit sFixFor=ASAP
+    >>> edit fixfor=ASAP
     >>> edit ixBugParent=1234
+    >>> edit parent=1234
     >>> edit sTags=my tag sStatus=testing
 '''
     assert_operation('edit')
-    kwargs = _parse_kwargs(args)
+    kwargs = _api_kwargs(args)
     CURRENT_CASE.edit(**kwargs)
 
 
@@ -1366,7 +1385,7 @@ def raw(*args):
 
     Mostly used for debugging.'''
     cmd, args_ = args[0], args[1:]
-    kwargs = _parse_kwargs(args_)
+    kwargs = _api_kwargs(args_)
     result = getattr(FB, cmd)(**kwargs)
     print(result.prettify())
 
