@@ -416,6 +416,17 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return self.events[-1]
 
     @property
+    def last_event_with_comment(self):
+        for event in reversed(self.events):
+            if event.comment:
+                return event
+
+    def get_event(self, event_id):
+        for event in self.events:
+            if event.id == int(event_id):
+                return event
+
+    @property
     def attachments(self):
         attachments = []
         for event in self.events:
@@ -586,16 +597,25 @@ class FBAttachment(FBObj):
     def safe_filename(self):
         return self.INVALID_CHARS_RE.sub('_', self.filename)
 
+    @property
+    def _local_filename(self):
+        return os.path.join(tempfile.gettempdir(), self.safe_filename)
+
     def download(self):
         url = self.url + '&token={}'.format(FB.current_token)
         r = urllib.request.urlopen(url)
         assert r.getcode() == 200, 'Failed to download {}'.format(url)
 
-        fname = os.path.join(tempfile.gettempdir(), self.safe_filename)
-        with open(fname, 'wb') as fid:
+        with open(self._local_filename, 'wb') as fid:
             fid.write(r.read())
-        print('Saved to', fname)
-        xdg_open(fname)
+        print('Saved to', self._local_filename)
+
+    def view(self):
+        if os.path.exists(self._local_filename):
+            print('Found local file.')
+        else:
+            self.download()
+        xdg_open(self._local_filename)
 
 
 class FBBugEvent(FBObj):
@@ -967,9 +987,7 @@ def parent():
     if CURRENT_CASE.parent_id > 0:
         show(CURRENT_CASE.parent_id)
     else:
-        print()
         print('No parent case.')
-        print()
 
 
 @command('reload')
@@ -1087,15 +1105,12 @@ def reply(*args):
     assert_current()
 
     if not args:
-        event = CURRENT_CASE.events[-1]
+        event = CURRENT_CASE.last_event_with_comment
     else:
         event_id = args[0]
-        all_events = {
-            e.id: e for e in CURRENT_CASE.events
-        }
-        event = all_events[int(event_id)]
+        event = CURRENT_CASE.get_event(event_id)
 
-    assert event.comment, 'Empty event'
+    assert event and event.comment, 'Empty event'
     header = '\n'.join(
         '> {}'.format(line)
         for line in event.comment.splitlines()
@@ -1254,7 +1269,7 @@ def attachments():
 
 @command('attachment')
 def attachment(attachment_id):
-    '''Download attachment id.
+    '''View attachment id.
 
     Example:
     >>> attachment 1234  # download and view attachment 1234
@@ -1262,7 +1277,7 @@ def attachment(attachment_id):
     assert_current()
     for a in CURRENT_CASE.attachments:
         if a.id == int(attachment_id):
-            a.download()
+            a.view()
             break
     else:
         assert False, 'Attachment not found in current case'
