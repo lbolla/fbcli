@@ -156,6 +156,7 @@ class FBObj(object):
 
 class FBStatus(FBObj):
 
+    TMPL = Template('''{% raw obj.name %}''')
     CACHE = set()
 
     def __init__(self, status):
@@ -170,6 +171,16 @@ class FBStatus(FBObj):
             if name == s.name:
                 return s
 
+    @classmethod
+    def get_by_category_id(cls, category_id):
+        if not cls.CACHE:
+            cls.get_all()
+        ss = list()
+        for s in cls.CACHE:
+            if category_id == s.category_id:
+                ss.append(s)
+        return ss
+
     @staticmethod
     def get_all():
         result = FB.listStatuses()
@@ -182,6 +193,10 @@ class FBStatus(FBObj):
     @property
     def name(self):
         return self._status.sStatus.get_text(strip=True)
+
+    @property
+    def category_id(self):
+        return int(self._status.ixCategory.get_text(strip=True))
 
 
 class FBPerson(FBObj):
@@ -276,6 +291,7 @@ class FBCase(FBObj):
 {{ ui.hl1 }}
 {% raw ui.caseid(obj.id) %} ({% raw obj.project %}/{% raw obj.area %}) \
 {% raw ui.title(obj.title) %}
+{% raw obj.category %} | \
 {% raw ui.status(obj.status) %} | \
 {% raw ui.priority(obj.priority) %} | \
 {% raw ui.darkgray(obj.milestone) %} | \
@@ -324,6 +340,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             'sProject',
             'sArea',
             'sFixFor',
+            'ixCategory',
+            'sCategory',
             'ixPersonOpenedBy',
             'ixBugParent',
             'ixBugChildren',
@@ -386,6 +404,18 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def parent_id(self):
         return int(self._case.ixBugParent.get_text(strip=True))
+
+    @property
+    def category_id(self):
+        return int(self._case.ixCategory.get_text(strip=True))
+
+    @property
+    def category(self):
+        return self._case.sCategory.get_text(strip=True)
+
+    @property
+    def available_statuses(self):
+        return FBStatus.get_by_category_id(self.category_id)
 
     @property
     def duplicate_of_id(self):
@@ -1067,6 +1097,12 @@ def reopen():
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reopen(**params)
 
+@command('statuses')
+def statuses():
+    '''Show the possible statuses of the current ticket.'''
+    assert_current()
+    for s in CURRENT_CASE.available_statuses:
+        print(s)
 
 @command('assign')
 def assign(*args):
