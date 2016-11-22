@@ -751,15 +751,26 @@ class FBCaseSearch(FBObj):
         set_last_search(self)
 
     @classmethod
-    def search(cls, q):
-        cls.logger.debug('Searching for %r', q)
+    def _parse_cases(cls, resp):
         cases = {}
-        resp = FB.search(
-            q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority")
         for case in resp.cases.findAll('case'):
             cobj = FBShortCase.from_xml(case)
             cases[cobj.id] = cobj
         return cls(cases.values())
+
+    @classmethod
+    def search(cls, q):
+        cls.logger.debug('Searching for %r', q)
+        resp = FB.search(
+            q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority")
+        return cls._parse_cases(resp)
+
+    @classmethod
+    def top(cls, n):
+        cls.logger.debug('Getting top %d cases', n)
+        resp = FB.listCases(
+            cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority", max=n)
+        return cls._parse_cases(resp)
 
 
 class FBProject(FBObj):
@@ -1133,6 +1144,15 @@ def search(*args):
     '''
     q = ' '.join(args)
     rs = FBCaseSearch.search(q)
+    print(rs)
+
+
+@command('top')
+def top(n=None):
+    '''Show the top n cases (default 10).'''
+    if n is None:
+        n = 10
+    rs = FBCaseSearch.top(n)
     print(rs)
 
 
