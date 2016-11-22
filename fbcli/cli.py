@@ -956,6 +956,22 @@ def header(ixBug=None):
         print(case.header())
 
 
+@command('parent')
+def parent():
+    '''Show parent ticket.
+
+    Example:
+    >>> parent
+    '''
+    assert_current()
+    if CURRENT_CASE.parent_id > 0:
+        show(CURRENT_CASE.parent_id)
+    else:
+        print()
+        print('No parent case.')
+        print()
+
+
 @command('reload')
 def reload_():
     '''Reload current ticket.
