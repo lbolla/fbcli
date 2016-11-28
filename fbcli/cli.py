@@ -1060,32 +1060,21 @@ def reactivate():
         CURRENT_CASE.reactivate(**params)
 
 
-@command('wontfix')
-def wontfix():
-    '''Resolve the current ticket as "won't fix".'''
-    assert_operation('resolve')
-    with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment() if text else {}
-        params['ixstatus'] = FBStatus.get_by_name("Resolved (Won't Fix)").id
-        CURRENT_CASE.resolve(**params)
-
-
-@command('duplicate')
-def duplicate():
-    '''Resolve the current ticket as "duplicate".'''
-    assert_operation('resolve')
-    with editor.maybe_writing('Add a comment?') as text:
-        params = text.get_params_for_comment() if text else {}
-        params['ixstatus'] = FBStatus.get_by_name("Resolved (Duplicate)").id
-        CURRENT_CASE.resolve(**params)
-
-
 @command('resolve')
-def resolve():
-    '''Resolve the current ticket.'''
+def resolve(*args):
+    '''Resolve the current ticket.
+
+    Optionally provide a resolution status. See `statuses` for options.
+
+    Example:
+    >>> resolve
+    >>> resolve Resolved (Won't Fix)
+    '''
     assert_operation('resolve')
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
+        if args and not params.get('sStatus'):
+            params['sStatus'] = ' '.join(args)
         CURRENT_CASE.resolve(**params)
 
 
