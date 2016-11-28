@@ -1129,7 +1129,7 @@ def comment():
 
 
 @command('reply')
-def reply(*args):
+def reply(ixBugEvent=None):
     '''Reply to comment.
 
     Call $EDITOR to write the comment and add the past comment, quoted.
@@ -1140,11 +1140,10 @@ def reply(*args):
     '''
     assert_current()
 
-    if not args:
+    if not ixBugEvent:
         event = CURRENT_CASE.last_event_with_comment
     else:
-        event_id = args[0]
-        event = CURRENT_CASE.get_event(event_id)
+        event = CURRENT_CASE.get_event(ixBugEvent)
 
     assert event and event.comment, 'Empty event'
     header = '\n'.join(
