@@ -29,6 +29,7 @@ setup(
         'fogbugz>=1.0.5',
         'tornado>=4,<5dev',
         'pyyaml>=3,<4dev',
+        'requests>=2.12.1,<3dev',
         'six',
     ] + extra_install_requires,
     test_suite='tests',

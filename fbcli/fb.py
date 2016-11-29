@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import wraps
 import getpass
 import json
@@ -5,9 +6,9 @@ import logging
 import os
 import importlib
 
+import requests
 from six.moves import input  # pylint: disable=redefined-builtin
 from six.moves.urllib_parse import urljoin
-from six.moves.urllib.request import Request, urlopen
 
 import fogbugz
 
@@ -111,33 +112,97 @@ class FBClient(object):
     def full_url(self, path):
         return urljoin(self._fburl, path)
 
+    def full_url_with_token(self, path):
+        return urljoin(
+            self._fburl, path + '?token={}'.format(self.current_token))
+
     def checkins(self, ixbug):
         '''The API does not provide a call for this.'''
         kilnhg_url = self._fburl.replace('.fogbugz.', '.kilnhg.')
         base_url = urljoin(kilnhg_url, '/fogbugz/casecheckins/{}?token={}')
         url = base_url.format(ixbug, self.current_token)
-        r = urlopen(url)
-        assert r.code == 200
-        return json.loads(r.read().decode())
+        r = requests.get(url)
+        r.raise_for_status()
+        return r.json()
 
     def notify(self, ixbug, ixbugeventlatest, ixPerson):
-        base_url = self.full_url('/f/api/0/cases/{}?token={}')
-        url = base_url.format(ixbug, self.current_token)
-        payload = json.dumps({
+        path = '/f/api/0/cases/{}'.format(ixbug)
+        url = self.full_url_with_token(path)
+        params = {
+            'sCommand': 'edit',
+            'sFormat': 'plain',
             'ixBug': ixbug,
             'rgixNotify': [ixPerson],
             'ixBugEventLatest': ixbugeventlatest,
-            'sCommand': "edit",
-            'fCloseCase': False,
-            'rgAttachments': [],
-            'sEvent': "",
-            'sFormat': "plain",
-            'tags': [],
-        }).encode()
-        req = Request(url, data=payload, headers={
-            'Content-Length': len(payload),
+        }
+
+        payload = json.dumps(params)
+        r = requests.post(url, data=payload, headers={
             'Content-Type': 'application/json',
         })
-        r = urlopen(req)
-        assert r.code == 200
-        return json.loads(r.read().decode())
+        r.raise_for_status()
+        return r.json()
+
+    def _http_get_case(self, session, ixbug):
+        '''Get case from HTTP API.'''
+        path = '/f/api/0/cases/{}'.format(ixbug)
+        url = self.full_url_with_token(path)
+        r = session.get(url)
+        r.raise_for_status()
+        return r
+
+    def _http_get_event(self, session, ixbugevent):
+        '''Get event from HTTP API.'''
+        path = '/f/api/0/caseevents/{}'.format(ixbugevent)
+        url = self.full_url_with_token(path)
+        r = session.get(url)
+        r.raise_for_status()
+        return r
+
+    def amend(self, ixbug, ixbugevent, params):
+        session = requests.Session()
+
+        # Get the edit history of this case
+        r = self._http_get_case(session, ixbug)
+        data = r.json()['data']
+        ix_bug_event_latest = data['ixBugEventLatest']
+
+        # Find latest edit for the event we are amending
+        event_edits = data.get('eventEdits', [])
+        all_edits = [-1] + [
+            e['ixEdit']
+            for e in event_edits if e['ixBugEvent'] == ixbugevent
+        ]
+        ix_edit = max(all_edits)
+
+        # Get headers (in particular, sUniqueID) from current version,
+        # as it's used to make sure nobody changed the ticketin the
+        # meantime
+        r = self._http_get_event(session, ixbugevent)
+
+        # Finally, POST the update
+        params = deepcopy(params)
+        params.update({
+            'sCommand': 'editEvent',
+            'sFormat': 'plain',
+            'ixBug': ixbug,
+            'ixBugEvent': ixbugevent,
+            'ixBugEventLatest': ix_bug_event_latest,
+            'ixEditCurrent': ix_edit,
+            'rgAttachments': [],
+            'rgixAttachmentsToDelete': [],
+            'rgsAttachmentsAdded': [],
+        })
+        payload = json.dumps(params)
+        r = session.post(r.url, data=payload, headers={
+            'Content-Type': 'application/json',
+        })
+        if r.ok:
+            print('Amended!')
+            return True
+        else:
+            errors = r.json()['errors']
+            print('Error!')
+            for e in errors:
+                print('    {}'.format(e['message']))
+            return False

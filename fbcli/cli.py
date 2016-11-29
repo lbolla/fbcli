@@ -521,14 +521,6 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             **self._clean_kwargs(kwargs))
         self.reset()
 
-    # def amend(self, **kwargs):
-    #     self.assert_operation('edit')
-    #     FB.edit(
-    #         ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-    #         ixBugEvent=self.last_event.id,
-    #         **self._clean_kwargs(kwargs))
-    #     self.reset()
-
     def resolve(self, **kwargs):
         self.assert_operation('resolve')
         FB.resolve(
@@ -563,6 +555,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             self.edit(**kwargs)
         FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
         self.reset()
+
+    def amend(self, event, **kwargs):
+        if FB.amend(self.id, event.id, self._clean_kwargs(kwargs)):
+            self.reset()
 
     def close(self, **kwargs):
         self.assert_operation('close')
@@ -1358,21 +1354,6 @@ def operations():
         ' '.join(CURRENT_CASE.operations)))
 
 
-# @command('amend')
-# def amend():
-#     '''Amend last comment.
-
-#     Example:
-#     >>> amend
-# '''
-#     assert_current()
-#     body = CURRENT_CASE.last_event.comment + '\n\n'
-#     with editor.writing(header=body) as text:
-#         editor.abort_if_empty(text)
-#         params = text.get_params_for_comment()
-#         CURRENT_CASE.amend(**params)
-
-
 def _parse_kwargs(args_):
     kwargs = {}
     if not args_:
@@ -1507,6 +1488,28 @@ def notify(*args):
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.notify(person, **params)
+
+
+@command('amend')
+def amend(ixBugEvent=None):
+    '''Amend comment (last by default).
+
+    Example:
+    >>> amend  # amend last comment
+    >>> amend 1234  # amend specific bug event
+'''
+    assert_current()
+
+    if not ixBugEvent:
+        event = CURRENT_CASE.last_event_with_comment
+    else:
+        event = CURRENT_CASE.get_event(ixBugEvent)
+
+    body = event.comment + '\n\n'
+    with editor.writing(header=body) as text:
+        editor.abort_if_empty(text)
+        params = text.get_params_for_comment()
+        CURRENT_CASE.amend(event, **params)
 
 
 @command('ipython')
