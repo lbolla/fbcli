@@ -329,6 +329,13 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         raw = FBCase._get_raw(ixBug)
         return cls(raw)
 
+    @classmethod
+    def get_by_id_or_current(cls, ixBug):
+        if ixBug is None:
+            assert_current()
+            return CURRENT_CASE
+        return FBCase.get_by_id(int(ixBug))
+
     @staticmethod
     def _get_raw(ixBug):
         cols = [
@@ -1040,12 +1047,8 @@ def show(ixBug=None):
     >>> show  # shows the current ticket, without refreshing it
     >>> show 1234  # shows ticket 1234
     '''
-    if ixBug is None:
-        assert_current()
-        print(CURRENT_CASE)
-    else:
-        case = FBCase.get_by_id(int(ixBug))
-        print(case)
+    case = FBCase.get_by_id_or_current(ixBug)
+    print(case)
 
 
 @command('header')
@@ -1056,12 +1059,8 @@ def header(ixBug=None):
     >>> header  # shows the current ticket's header
     >>> header 123  # shows ticket 123's header
     '''
-    if ixBug is None:
-        assert_current()
-        print(CURRENT_CASE.header())
-    else:
-        case = FBCase.get_by_id(int(ixBug))
-        print(case.header())
+    case = FBCase.get_by_id_or_current(ixBug)
+    print(case.header())
 
 
 @command('parent')
@@ -1590,6 +1589,24 @@ def favorites():
     for case in fs.favorites:
         print(case)
     print()
+
+
+@command('favorite')
+def favorite(ixBug=None):
+    '''Favorite case.'''
+
+    case = FBCase.get_by_id_or_current(ixBug)
+    FB.favorite(case.id, case.category)
+    print('Favorited!')
+
+
+@command('unfavorite')
+def unfavorite(ixBug=None):
+    '''Unfavorite case.'''
+
+    case = FBCase.get_by_id_or_current(ixBug)
+    FB.unfavorite(case.id, case.category)
+    print('Unfavorited!')
 
 
 @command('recent')

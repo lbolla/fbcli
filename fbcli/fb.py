@@ -209,8 +209,36 @@ class FBClient(object):
 
     def favorites(self):
         '''Get favorite cases.'''
-        path = '/f/api/0/favorites'
+        path = '/f/api/0/favorites/'
         url = self.full_url_with_token(path)
         r = requests.get(url, params={'json': '{}'})
+        r.raise_for_status()
+        return r.json()
+
+    def favorite(self, ixbug, stype):
+        '''Mark a case as favorite.'''
+        path = '/f/api/0/favorites/'
+        url = self.full_url_with_token(path)
+        payload = json.dumps({
+            'ixItem': ixbug,
+            'sType': stype,
+        })
+        r = requests.post(url, data=payload, headers={
+            'Content-Type': 'application/json',
+        })
+        r.raise_for_status()
+        return r.json()
+
+    def unfavorite(self, ixbug, stype):
+        '''Unfavorite a case.'''
+        path = '/f/api/0/favorites/'
+        url = self.full_url_with_token(path)
+        payload = json.dumps({
+            'ixItem': ixbug,
+            'sType': stype,
+        })
+        r = requests.delete(url, data=payload, headers={
+            'Content-Type': 'application/json',
+        })
         r.raise_for_status()
         return r.json()
