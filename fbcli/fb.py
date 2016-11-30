@@ -206,3 +206,11 @@ class FBClient(object):
             for e in errors:
                 print('    {}'.format(e['message']))
             return False
+
+    def favorites(self):
+        '''Get favorite cases.'''
+        path = '/f/api/0/favorites'
+        url = self.full_url_with_token(path)
+        r = requests.get(url, params={'json': '{}'})
+        r.raise_for_status()
+        return r.json()

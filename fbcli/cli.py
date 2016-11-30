@@ -799,6 +799,57 @@ class FBCaseSearch(FBObj):
         return cls._parse_cases(resp)
 
 
+class FBFavoriteCase(FBObj):
+
+    # {
+    #     "__type__": "DocumentListItem",
+    #     "sType": "Bug",
+    #     "sTitle": "Barchart export issueing too many queries",
+    #     "ixDiscussGroup": 0,
+    #     "ixItem": 45744,
+    #     "viewed": true
+    # },
+
+    TMPL = Template(
+        '''{% raw ui.caseid(obj.id, rjust=8) %} \
+{% raw ui.title(obj.title) %}''')
+
+    def __init__(self, data):
+        self._data = data
+
+    @property
+    def id(self):
+        return self._data['ixItem']
+
+    @property
+    def title(self):
+        return self._data['sTitle']
+
+
+class FBRecentCase(FBFavoriteCase):
+    pass
+
+
+class FBCaseFavorites(FBObj):
+
+    def __init__(self):
+        self._data = FB.favorites()
+
+    @property
+    def favorites(self):
+        return [
+            FBFavoriteCase(data)
+            for data in self._data['data']['favorites']
+        ]
+
+    @property
+    def recent(self):
+        return [
+            FBRecentCase(data)
+            for data in self._data['data']['recent']
+        ]
+
+
 class FBProject(FBObj):
 
     TMPL = Template('''{% raw ui.rtrunc(obj.name, 30) %} \
@@ -1525,6 +1576,34 @@ def amend(ixBugEvent=None):
         editor.abort_if_empty(text)
         params = text.get_params_for_comment()
         CURRENT_CASE.amend(event, **params)
+
+
+@command('favorites')
+def favorites():
+    '''Get favorite cases.'''
+
+    fs = FBCaseFavorites()
+    if not fs.favorites:
+        print('No favorite cases.')
+        return
+    print()
+    for case in fs.favorites:
+        print(case)
+    print()
+
+
+@command('recent')
+def recent():
+    '''Get recent cases.'''
+
+    fs = FBCaseFavorites()
+    if not fs.recent:
+        print('No recent cases.')
+        return
+    print()
+    for case in fs.recent:
+        print(case)
+    print()
 
 
 @command('ipython')
