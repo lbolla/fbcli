@@ -1158,11 +1158,26 @@ def search(*args):
 
     Example:
     >>> search carmax
-    >>> search assignedTo:"Lorenzo Bolla" status:Active
-    >>> search tag:answexd
+
+    You can use '=' to separate keywords:
+    >>> search assignedTo=Lorenzo Bolla status=Active
+    >>> search tag=answexd
+
+    or ':', but make sure to quote args if necessary:
     >>> search assignedTo:me project:brandindex
+    >>> search assignedTo:"Lorenzo Bolla" status:Active
+
+    Using ':' syntax allows to have non-keyword arguments, too:
+    >>> search assignedTo:me carmax
     '''
+
+    def kwargs_to_q(kwargs):
+        return ' '.join('{}:"{}"'.format(k, v) for k, v in kwargs.items())
+
     q = ' '.join(args)
+    if '=' in q:
+        kwargs = _parse_kwargs(args, sep='=')
+        q = kwargs_to_q(kwargs)
     rs = FBCaseSearch.search(q)
     print(rs)
 
@@ -1354,18 +1369,18 @@ def operations():
         ' '.join(CURRENT_CASE.operations)))
 
 
-def _parse_kwargs(args_):
+def _parse_kwargs(args_, sep='='):
     kwargs = {}
     if not args_:
         return kwargs
     line = ' '.join(args_)
-    matches = list(re.finditer(r'\w+=', line))
+    matches = list(re.finditer(r'\w+' + sep, line))
     if not matches:
         return kwargs
 
     m0 = matches[0]
     for m1 in matches[1:]:
-        k = m0.group().replace('=', '')
+        k = m0.group().replace(sep, '')
         _s0, e0 = m0.span()
         s1, _e1 = m1.span()
         v = line[e0: s1]
@@ -1373,7 +1388,7 @@ def _parse_kwargs(args_):
         m0 = m1
 
     # Last token
-    k = m0.group().replace('=', '')
+    k = m0.group().replace(sep, '')
     _s0, e0 = m0.span()
     s1 = len(line)
     v = line[e0: s1]
