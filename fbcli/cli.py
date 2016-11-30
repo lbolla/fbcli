@@ -1597,7 +1597,7 @@ def favorite(ixBug=None):
 
     case = FBCase.get_by_id_or_current(ixBug)
     FB.favorite(case.id, case.category)
-    print('Favorited!')
+    print('OK')
 
 
 @command('unfavorite')
@@ -1606,7 +1606,7 @@ def unfavorite(ixBug=None):
 
     case = FBCase.get_by_id_or_current(ixBug)
     FB.unfavorite(case.id, case.category)
-    print('Unfavorited!')
+    print('OK')
 
 
 @command('recent')
@@ -1684,6 +1684,9 @@ def create_aliases():
     alias('r', 'reload')
     alias('s', 'show')
     alias('sh', 'header')
+    alias('star', 'favorite')
+    alias('starred', 'favorites')
+    alias('unstar', 'unfavorite')
 
     # User-defined aliases
     cp = configparser.ConfigParser()
