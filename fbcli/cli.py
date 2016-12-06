@@ -455,7 +455,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def last_event_with_comment(self):
         for event in reversed(self.events):
-            if event.comment:
+            if event.raw_comment:
                 return event
 
     def get_event(self, event_id):
@@ -1191,10 +1191,12 @@ def reply(ixBugEvent=None):
     else:
         event = CURRENT_CASE.get_event(ixBugEvent)
 
-    assert event and event.comment, 'Empty event'
-    header = '\n'.join(
+    assert event and event.raw_comment, 'Empty event'
+
+    header = 'On {} {} said:\n'.format(event.dt, event.person)
+    header += '\n'.join(
         '> {}'.format(line)
-        for line in event.comment.splitlines()
+        for line in event.raw_comment.splitlines()
     ) + '\n\n'
     with editor.writing(header) as text:
         editor.abort_if_empty(text)
@@ -1570,7 +1572,7 @@ def amend(ixBugEvent=None):
     else:
         event = CURRENT_CASE.get_event(ixBugEvent)
 
-    body = event.comment + '\n\n'
+    body = event.raw_comment + '\n\n'
     with editor.writing(header=body) as text:
         editor.abort_if_empty(text)
         params = text.get_params_for_comment()
