@@ -1455,6 +1455,7 @@ def _to_api_kwargs(kwargs):
         'parent': 'ixBugParent',
         'title': 'sTitle',
         'status': 'sStatus',
+        'priority': 'sPriority',
         'tags': 'sTags',
     }
     return {
