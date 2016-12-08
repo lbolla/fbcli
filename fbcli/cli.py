@@ -1451,12 +1451,14 @@ def _parse_kwargs(args_, sep='='):
 
 def _to_api_kwargs(kwargs):
     translate = {
+        'area': 'sArea',
         'fixfor': 'sFixFor',
         'parent': 'ixBugParent',
-        'title': 'sTitle',
-        'status': 'sStatus',
         'priority': 'sPriority',
+        'project': 'sProject',
+        'status': 'sStatus',
         'tags': 'sTags',
+        'title': 'sTitle',
     }
     return {
         translate.get(k.lower(), k): v for k, v in kwargs.items()
