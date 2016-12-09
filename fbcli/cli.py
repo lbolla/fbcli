@@ -577,6 +577,9 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     def browse(self):
         browser.browse(self.permalink)
 
+    def mark_as_viewed(self):
+        FB.view(ixBug=self.id)
+
     def header(self):
         return self.to_string(self.TMPL_HEADER)
 
@@ -1048,6 +1051,7 @@ def show(ixBug=None):
     >>> show 1234  # shows ticket 1234
     '''
     case = FBCase.get_by_id_or_current(ixBug)
+    case.mark_as_viewed()
     print(case)
 
 
