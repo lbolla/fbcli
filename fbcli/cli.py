@@ -1051,8 +1051,8 @@ def show(ixBug=None):
     >>> show 1234  # shows ticket 1234
     '''
     case = FBCase.get_by_id_or_current(ixBug)
-    case.mark_as_viewed()
     print(case)
+    case.mark_as_viewed()
 
 
 @command('header')
