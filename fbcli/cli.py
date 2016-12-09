@@ -245,7 +245,7 @@ class FBPerson(FBObj):
         result = FB.listPeople()
         return sorted(
             [FBPerson(a) for a in result.findAll('person')],
-            key=lambda p: (p.fullname, p.email))
+            key=lambda p: (p.fullname.lower(), p.email.lower()))
 
     @property
     def id(self):
@@ -1345,15 +1345,19 @@ def milestones(*args):
 
 
 @command('people')
-def people():
+def people(*args):
     '''List people.
 
     Example:
     >>> people
+    >>> people Albert  # filter
     '''
+    q = args[0] if len(args) > 0 else None
+
     print()
     for person in FBPerson.get_all():
-        print(person)
+        if q is None or q in person.fullname.lower():
+            print(person)
     print()
 
 
