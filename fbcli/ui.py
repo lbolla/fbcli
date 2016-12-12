@@ -96,6 +96,13 @@ def _id(color, s, ljust=None, rjust=None, **kwargs):
     return color(id_, **kwargs)
 
 
+def _tag(color, s):
+    if s is None:
+        return
+    tag_ = '|{}|'.format(s)
+    return color(tag_)
+
+
 def title(s):
     return blue(s)
 
@@ -215,6 +222,8 @@ caseid = partial(_id, boldcyan)
 eventid = partial(_id, darkgray)
 linkid = partial(_id, lightmagenta)
 attachmentid = partial(_id, lightgreen)
+
+tag = partial(_tag, darkgray)
 
 setup_win()
 # React on window's resizes

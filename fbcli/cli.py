@@ -295,7 +295,8 @@ class FBCase(FBObj):
     TMPL_HEADER_TEXT = '''
 {{ ui.hl1 }}
 {% raw ui.caseid(obj.id) %} ({% raw obj.project %}/{% raw obj.area %}) \
-{% raw ui.title(obj.title) %}
+{% raw ui.title(obj.title) %} \
+{% for tag in obj.tags %}{{ ui.tag(tag) }}{% end %}
 {% raw obj.category %} | \
 {% raw ui.status(obj.status) %} | \
 {% raw ui.priority(obj.priority) %} | \
@@ -487,7 +488,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def tags(self):
-        return self._case.tags.get_text(strip=True).split(',')
+        return filter(None, self._case.tags.get_text(strip=True).split(','))
 
     @property
     def operations(self):
@@ -822,9 +823,10 @@ class FBCaseSearch(FBObj):
     @classmethod
     def _parse_cases(cls, resp):
         cases = {}
-        for case in resp.cases.findAll('case'):
-            cobj = FBShortCase.from_xml(case)
-            cases[cobj.id] = cobj
+        if resp.cases is not None:
+            for case in resp.cases.findAll('case'):
+                cobj = FBShortCase.from_xml(case)
+                cases[cobj.id] = cobj
         return cls(cases.values())
 
     @classmethod
