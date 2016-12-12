@@ -200,6 +200,11 @@ class Text(object):
             params['Files'] = self.files
         return params
 
+    def get_params_for_amend(self):
+        params = self.get_params_for_comment()
+        assert 'Files' not in params, 'Attachments not supported with amend'
+        return params
+
 
 def _encode_for_upload(s):
     '''Remove unsafe characters that seem to break uploads.'''

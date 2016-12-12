@@ -1616,7 +1616,7 @@ def amend(ixBugEvent=None):
     body = event.raw_comment + '\n\n'
     with editor.writing(header=body) as text:
         editor.abort_if_empty(text)
-        params = text.get_params_for_comment()
+        params = text.get_params_for_amend()
         CURRENT_CASE.amend(event, **params)
 
 
