@@ -153,6 +153,11 @@ class FBObj(object):
             u = u.encode('utf8')
         return u
 
+    @staticmethod
+    def _soup(html):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, 'lxml')
+
 
 class FBStatus(FBObj):
 
@@ -654,6 +659,23 @@ class FBAttachment(FBObj):
         xdg_open(self._local_filename)
 
 
+class FBInlineImg(FBAttachment):
+
+    def __init__(self, url):  # pylint: disable=super-init-not-called
+        self._url = url
+        url = urllib.parse.urlparse(self.url)
+        data = dict(urllib.parse.parse_qsl(url.query))
+        self._filename = data['sFileName']
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @property
+    def url(self):
+        return FB.full_url(self._url)
+
+
 class FBBugEvent(FBObj):
 
     TMPL = Template(
@@ -711,13 +733,24 @@ class FBBugEvent(FBObj):
 
     @property
     def attachments(self):
-        return [FBAttachment(a) for a in self._event.findAll('attachment')]
+        return [
+            FBAttachment(a) for a in self._event.findAll('attachment')
+        ] + self.inline_imgs
 
     @property
     def links(self):
         return [
             link for link in self._fbcase.links
             if link.event.id == self.id]
+
+    @property
+    def inline_imgs(self):
+        html = self._event.sHtml.get_text(strip=True)
+        soup = self._soup(html)
+        imgs = []
+        for img in soup.findAll('img'):
+            imgs.append(FBInlineImg(img.attrs['src']))
+        return imgs
 
 
 class FBShortCase(FBObj):
@@ -939,11 +972,6 @@ class FBCheckin(FBObj):
     def __init__(self, id_, data):
         self.id = id_
         self._data = data
-
-    @staticmethod
-    def _soup(html):
-        from bs4 import BeautifulSoup
-        return BeautifulSoup(html, 'lxml')
 
     @property
     def url(self):
