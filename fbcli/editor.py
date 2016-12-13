@@ -195,6 +195,7 @@ class Text(object):
         params = dict(
             sEvent=self.body,
             sTags=','.join(self.meta.get('Tags', [])),
+            ixBugOriginal=self.meta.get('Duplicate'),
         )
         if self.nfiles > 0:
             params['Files'] = self.files
