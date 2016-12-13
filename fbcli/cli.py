@@ -889,10 +889,10 @@ class FBCaseFavorites(FBObj):
 
     @property
     def recent(self):
-        return sorted([
+        return [
             FBRecentCase(data)
             for data in self._data['data']['recent']
-        ], key=lambda c: c.id)
+        ]
 
 
 class FBProject(FBObj):
