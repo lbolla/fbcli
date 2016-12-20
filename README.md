@@ -1,8 +1,6 @@
 # FogBugz Command Line Interface
 
-[<img src="https://travis-ci.org/lbolla/fbcli.svg?branch=master">](https://travis-ci.org/lbolla/fbcli)
-
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3699c35b755d41fbb540ae4e02118260)](https://www.codacy.com/app/lbolla/fbcli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lbolla/fbcli&amp;utm_campaign=Badge_Grade)
+[<img src="https://travis-ci.org/lbolla/fbcli.svg?branch=master">](https://travis-ci.org/lbolla/fbcli) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3699c35b755d41fbb540ae4e02118260)](https://www.codacy.com/app/lbolla/fbcli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lbolla/fbcli&amp;utm_campaign=Badge_Grade)
 
 Install with:
 
