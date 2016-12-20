@@ -85,7 +85,7 @@ def xdg_open(what):
     if retval != 0:
         logging.warning('Cannot open: No xdg-open available')
     else:
-        call(['xdg-open', what])
+        call('xdg-open {} 1> /dev/null 2> /dev/null'.format(what), shell=True)
 
 
 class Command(object):
@@ -641,7 +641,8 @@ class FBAttachment(FBObj):
 
     @property
     def _local_filename(self):
-        return os.path.join(tempfile.gettempdir(), self.safe_filename)
+        fname = '{}_{}'.format(self.id, self.safe_filename)
+        return os.path.join(tempfile.gettempdir(), fname)
 
     def download(self):
         url = self.url + '&token={}'.format(FB.current_token)
@@ -733,10 +734,17 @@ class FBBugEvent(FBObj):
         return URL_RE.findall(self.raw_comment)
 
     @property
-    def attachments(self):
+    def _attachments(self):
         return [
             FBAttachment(a) for a in self._event.findAll('attachment')
-        ] + self.inline_imgs
+        ]
+
+    @property
+    def attachments(self):
+        all_attachments = {
+            a.id: a for a in self._attachments + self.inline_imgs
+        }
+        return sorted(all_attachments.values(), key=lambda a: a.id)
 
     @property
     def links(self):
