@@ -115,6 +115,10 @@ def _get_hw():
         return (25, 80)
 
 
+# Default values if setup_win is not called
+hl1, hl2 = '=' * 80, '-' * 80
+
+
 def setup_win():
     '''Setup globals that depend on window size.'''
     global hl1, hl2
