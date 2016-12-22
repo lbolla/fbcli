@@ -85,7 +85,9 @@ def xdg_open(what):
     if retval != 0:
         logging.warning('Cannot open: No xdg-open available')
     else:
-        call('xdg-open {} 1> /dev/null 2> /dev/null'.format(what), shell=True)
+        call(
+            'xdg-open {} 1> /dev/null 2> /dev/null'.format(re.escape(what)),
+            shell=True)
 
 
 class Command(object):
