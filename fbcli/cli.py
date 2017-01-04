@@ -1052,18 +1052,23 @@ def help_(*args):
     >>> help
     >>> help logon
     '''
+
     if len(args) == 0:
+
+        width = max(
+            len(n) for n in list(COMMANDS.keys()) + list(ALIASES.keys()))
         print()
         print('Available commands:')
         for name, cmd in sorted(COMMANDS.items()):
-            print('{} - {}'.format(name.rjust(12), cmd.desc()))
+            print('{} - {}'.format(name.rjust(width), cmd.desc()))
         print()
         print('Aliases:')
         for name, cmd in sorted(ALIASES.items()):
-            print('{} - {}'.format(name.rjust(12), cmd.desc()))
+            print('{} - {}'.format(name.rjust(width), cmd.desc()))
         print()
         print('Type "help <cmd>" for more.')
         print()
+
     else:
         name = args[0]
         if name in COMMANDS:
