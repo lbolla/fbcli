@@ -1188,6 +1188,7 @@ def statuses():
     for s in CURRENT_CASE.available_statuses:
         print(s)
 
+
 @command('assign')
 def assign(*args):
     '''Assign the current ticket to someone.
@@ -1511,6 +1512,7 @@ def _to_api_kwargs(kwargs):
         'project': 'sProject',
         'status': 'sStatus',
         'tags': 'sTags',
+        'tag': 'sTags',
         'title': 'sTitle',
     }
     return {
@@ -1532,6 +1534,7 @@ def edit(*args):
     >>> edit ixBugParent=1234
     >>> edit parent=1234
     >>> edit sTags=my tag sStatus=testing
+    >>> edit tag=some tag
 '''
     assert_operation('edit')
     kwargs = _api_kwargs(args)
