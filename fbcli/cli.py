@@ -1181,6 +1181,24 @@ def reopen():
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reopen(**params)
 
+
+@command('duplicate')
+def duplicate(*args):
+    '''Resolve the current ticket as duplicate.
+
+    Example:
+    >>> duplicate 1234
+    '''
+    assert_operation('resolve')
+    ixdup = int(args[0])
+    with editor.maybe_writing('Add a comment?') as text:
+        params = text.get_params_for_comment() if text else {}
+        params['sStatus'] = 'Resolved (Duplicate)'
+        CURRENT_CASE.resolve(**params)
+        # TODO not working
+        # FB.duplicate(CURRENT_CASE.id, ixdup)
+
+
 @command('statuses')
 def statuses():
     '''Show the possible statuses of the current ticket.'''

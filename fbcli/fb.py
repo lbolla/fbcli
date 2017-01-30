@@ -207,38 +207,106 @@ class FBClient(object):
                 print('    {}'.format(e['message']))
             return False
 
+    # TODO not working
+    def duplicate(self, ixbug, ixdup):
+        session = requests.Session()
+
+        # Get the edit history of this case
+        r = self._http_get_case(session, ixbug)
+        data = r.json()['data']
+
+        fields = [
+            'tags',
+            'subcases',
+            'sVersion',
+            'sTitle',
+            'sFormat',
+            'sEvent',
+            'sCustomerEmail',
+            'sComputer',
+            'sCommand',
+            'rgixNotify',
+            'rgAttachments',
+            'reactivateTime',
+            'ixStatus',
+            'ixProject',
+            'ixBug',
+            'ixArea',
+            'hrsElapsedExtra',
+            'hrsCurrEst',
+            'fCloseCase',
+            'dtDue',
+            'dblStoryPts',
+            'casesDependedOn',
+            'ixBugEventLatest',
+            'ixBugParent',
+            'ixCategory',
+            'ixDuplicateOf',
+            'ixFixFor',
+            'ixKanbanColumn2',
+            'ixPersonAssignedTo',
+            'ixPriority',
+        ]
+        params = {k: v for k, v in data.items() if k in fields}
+        params.update({
+            'sCommand': 'resolve',
+            'sFormat': 'plain',
+            'ixDuplicateOf': ixdup,
+        })
+
+        payload = json.dumps(data)
+        r = session.post(r.url, data=payload, headers={
+            'Content-Type': 'application/json',
+        })
+        if r.ok:
+            print('OK')
+            return True
+        else:
+            errors = r.json()['errors']
+            print('Error!')
+            for e in errors:
+                print('    {}'.format(e['message']))
+            return False
+
+    @staticmethod
+    def _raise_on_error(r):
+        if not r.ok:
+            data = r.json()
+            msg = '\n'.join(e['message'] for e in data['errors'])
+            raise ValueError(msg)
+
     def favorites(self):
         '''Get favorite cases.'''
         path = '/f/api/0/favorites/'
         url = self.full_url_with_token(path)
         r = requests.get(url, params={'json': '{}'})
-        r.raise_for_status()
+        self._raise_on_error(r)
         return r.json()
 
-    def favorite(self, ixbug, stype):
+    def _favorite(self, action, ixbug, category):
+        # I am not sure what sType is supposed to be
+        stype_map = {
+            'Task': 'Bug',
+            'Inquiry': 'Bug',
+        }
+        stype = stype_map.get(category, category)
+        path = '/f/api/0/favorites/'
+        url = self.full_url_with_token(path)
+        payload = json.dumps({
+            'ixItem': ixbug,
+            'sType': stype,
+        })
+        f = getattr(requests, action)
+        r = f(url, data=payload, headers={
+            'Content-Type': 'application/json',
+        })
+        self._raise_on_error(r)
+        return r.json()
+
+    def favorite(self, ixbug, category):
         '''Mark a case as favorite.'''
-        path = '/f/api/0/favorites/'
-        url = self.full_url_with_token(path)
-        payload = json.dumps({
-            'ixItem': ixbug,
-            'sType': stype,
-        })
-        r = requests.post(url, data=payload, headers={
-            'Content-Type': 'application/json',
-        })
-        r.raise_for_status()
-        return r.json()
+        self._favorite('post', ixbug, category)
 
-    def unfavorite(self, ixbug, stype):
+    def unfavorite(self, ixbug, category):
         '''Unfavorite a case.'''
-        path = '/f/api/0/favorites/'
-        url = self.full_url_with_token(path)
-        payload = json.dumps({
-            'ixItem': ixbug,
-            'sType': stype,
-        })
-        r = requests.delete(url, data=payload, headers={
-            'Content-Type': 'application/json',
-        })
-        r.raise_for_status()
-        return r.json()
+        self._favorite('delete', ixbug, category)
