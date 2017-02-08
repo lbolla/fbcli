@@ -487,7 +487,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
                 links.append(link)
                 ilink += 1
             for text, url in event.inline_urls:
-                link = FBInlineLink(ilink, event, url, text)
+                link = FBInlineLink(ilink, event, text, url)
                 ilink += 1
                 links.append(link)
         return links
@@ -607,11 +607,10 @@ class FBLink(FBObj):
     TMPL = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
 
-    def __init__(self, id_, event, url, text=None):
+    def __init__(self, id_, event, url):
         self.id = id_
         self.event = event
         self.url = url
-        self.text = text or url
 
     def rewrite(self, text):
         return text.replace(self.url, str(self), 1)
@@ -624,6 +623,10 @@ class FBInlineLink(FBLink):
 
     TMPL_TEXT = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.text) %}''')
+
+    def __init__(self, id_, event, text, url):
+        super(FBInlineLink, self).__init__(id_, event, url)
+        self.text = text
 
     def rewrite(self, text):
         return text.replace(self.text, self.to_string(self.TMPL_TEXT), 1)
@@ -786,7 +789,10 @@ class FBBugEvent(FBObj):
         soup = self._soup(html)
         urls = []
         for url in soup.findAll('a'):
-            urls.append((url.text, url.attrs['href']))
+            href = url.attrs.get('href')
+            t = url.text.strip()
+            if t and href and t != href:
+                urls.append((t, href))
         return urls
 
 
