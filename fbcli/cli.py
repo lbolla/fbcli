@@ -482,12 +482,12 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     def links(self):
         ilink, links = 0, []
         for event in self.events:
-            for url in event.urls:
-                link = FBLink(ilink, event, url)
+            for pos, url in event.urls:
+                link = FBLink(ilink, event, url, pos)
                 links.append(link)
                 ilink += 1
             for text, url in event.inline_urls:
-                link = FBInlineLink(ilink, event, text, url)
+                link = FBInlineLink(ilink, event, url, text)
                 ilink += 1
                 links.append(link)
         return links
@@ -602,7 +602,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         return cls.get_by_id(ixbug)
 
 
-class FBLink(FBObj):
+class FBBaseLink(FBObj):
 
     TMPL = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
@@ -612,19 +612,35 @@ class FBLink(FBObj):
         self.event = event
         self.url = url
 
-    def rewrite(self, text):
-        return text.replace(self.url, str(self), 1)
-
     def browse(self):
         browser.browse(self.url)
 
+    def rewrite(self, text):
+        raise NotImplementedError()
 
-class FBInlineLink(FBLink):
+
+class FBLink(FBBaseLink):
+
+    TMPL = Template(
+        '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
+
+    def __init__(self, id_, event, url, pos):
+        super(FBLink, self).__init__(id_, event, url)
+        self.id = id_
+        self.event = event
+        self.url = url
+        self.pos = pos
+
+    def rewrite(self, text):
+        return text[:self.pos] + text[self.pos:].replace(self.url, str(self), 1)
+
+
+class FBInlineLink(FBBaseLink):
 
     TMPL_TEXT = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.text) %}''')
 
-    def __init__(self, id_, event, text, url):
+    def __init__(self, id_, event, url, text):
         super(FBInlineLink, self).__init__(id_, event, url)
         self.text = text
 
@@ -753,7 +769,10 @@ class FBBugEvent(FBObj):
 
     @property
     def urls(self):
-        return URL_RE.findall(self.raw_comment)
+        return [
+            (m.start(), m.group())
+            for m in URL_RE.finditer(self.raw_comment)
+            ]
 
     @property
     def _attachments(self):
