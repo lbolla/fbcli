@@ -484,6 +484,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         for event in self.events:
             for url in event.urls:
                 link = FBLink(ilink, event, url)
+                links.append(link)
+                ilink += 1
+            for text, url in event.inline_urls:
+                link = FBInlineLink(ilink, event, url, text)
                 ilink += 1
                 links.append(link)
         return links
@@ -603,13 +607,26 @@ class FBLink(FBObj):
     TMPL = Template(
         '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}''')
 
-    def __init__(self, id_, event, url):
+    def __init__(self, id_, event, url, text=None):
         self.id = id_
         self.event = event
         self.url = url
+        self.text = text or url
+
+    def rewrite(self, text):
+        return text.replace(self.url, str(self), 1)
 
     def browse(self):
         browser.browse(self.url)
+
+
+class FBInlineLink(FBLink):
+
+    TMPL_TEXT = Template(
+        '''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.text) %}''')
+
+    def rewrite(self, text):
+        return text.replace(self.text, self.to_string(self.TMPL_TEXT), 1)
 
 
 class FBAttachment(FBObj):
@@ -728,7 +745,7 @@ class FBBugEvent(FBObj):
 
     def _linkify(self, text):
         for link in self.links:
-            text = text.replace(link.url, str(link), 1)
+            text = link.rewrite(text)
         return text
 
     @property
@@ -762,6 +779,15 @@ class FBBugEvent(FBObj):
         for img in soup.findAll('img'):
             imgs.append(FBInlineImg(img.attrs['src']))
         return imgs
+
+    @property
+    def inline_urls(self):
+        html = self._event.sHtml.get_text(strip=True)
+        soup = self._soup(html)
+        urls = []
+        for url in soup.findAll('a'):
+            urls.append((url.text, url.attrs['href']))
+        return urls
 
 
 class FBShortCase(FBObj):
