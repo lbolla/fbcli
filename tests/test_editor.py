@@ -49,6 +49,33 @@ This is the body with mo®e utf8.
         self.assertEqual(t.meta['Title'], 'Some ¢hars')
         self.assertEqual(t.body, 'This is the body with mo®e utf8.')
 
+    def test_body_with_comments(self):
+        txt = '''Title: title title
+Project: Proj
+Area: misc
+Assign to: me
+Priority: high
+---
+# This comment should stay
+This is the body.
+# This comment should stay, too
+
+# This comment won't be included because there are no blank lines
+# Lines starting wth "#" will be ignored.
+# Leave this file empty to abort action.
+# It's possible to add metadata in the format of a header.
+# Use "---" as separator between the header and the body.
+# E.g. To upload files use:
+#    Files:
+#      - path_to_file_1
+#      - path_to_file_2
+'''
+        expected = '''# This comment should stay
+This is the body.
+# This comment should stay, too'''
+        t = editor.Text(txt)
+        self.assertEqual(t.body, expected)
+
     def test_new_invalid_title(self):
         txt = '''Title: <title>
 Project: Proj

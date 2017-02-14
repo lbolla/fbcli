@@ -1,4 +1,4 @@
-from itertools import takewhile
+from itertools import takewhile, dropwhile
 from subprocess import call
 import contextlib
 import os
@@ -45,12 +45,10 @@ def _get_file():
 
 
 def _strip_comments(text):
-    out = []
-    for line in text.splitlines():
-        if line.startswith(COMMENT_CHAR):
-            continue
-        out.append(line)
-    return '\n'.join(out)
+    lines = dropwhile(
+        lambda line: line.startswith(COMMENT_CHAR),
+        reversed(text.splitlines()))
+    return '\n'.join(reversed(list(lines)))
 
 
 def _write(header=DEFAULT_HEADER):
