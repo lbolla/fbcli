@@ -795,18 +795,22 @@ class FBBugEvent(FBObj):
 
     @property
     def inline_imgs(self):
+        imgs = []
+        if not self._event.sHtml:
+            return imgs
         html = self._event.sHtml.get_text(strip=True)
         soup = self._soup(html)
-        imgs = []
         for img in soup.findAll('img'):
             imgs.append(FBInlineImg(img.attrs['src']))
         return imgs
 
     @property
     def inline_urls(self):
+        urls = []
+        if not self._event.sHtml:
+            return urls
         html = self._event.sHtml.get_text(strip=True)
         soup = self._soup(html)
-        urls = []
         for url in soup.findAll('a'):
             href = url.attrs.get('href')
             t = url.text.strip()
