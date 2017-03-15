@@ -19,7 +19,6 @@ from tornado.template import Template
 from tornado.options import parse_command_line
 import yaml
 
-from fbcli import browser
 from fbcli import errors
 from fbcli import fb
 from fbcli import editor
@@ -587,7 +586,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.reset()
 
     def browse(self):
-        browser.browse(self.permalink)
+        xdg_open(self.permalink)
 
     def mark_as_viewed(self):
         FB.view(ixBug=self.id)
@@ -613,7 +612,7 @@ class FBBaseLink(FBObj):
         self.url = url
 
     def browse(self):
-        browser.browse(self.url)
+        xdg_open(self.url)
 
     def rewrite(self, text):
         raise NotImplementedError()
@@ -632,7 +631,8 @@ class FBLink(FBBaseLink):
         self.pos = pos
 
     def rewrite(self, text):
-        return text[:self.pos] + text[self.pos:].replace(self.url, str(self), 1)
+        return text[:self.pos] + text[self.pos:].replace(
+            self.url, str(self), 1)
 
 
 class FBInlineLink(FBBaseLink):
@@ -1065,7 +1065,7 @@ class FBCheckin(FBObj):
         return self._soup(html).text.strip()
 
     def browse(self):
-        browser.browse(self.url)
+        xdg_open(self.url)
 
 
 def get_prompt():
@@ -1246,7 +1246,7 @@ def duplicate(*args):
     >>> duplicate 1234
     '''
     assert_operation('resolve')
-    ixdup = int(args[0])
+    # ixdup = int(args[0])
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         params['sStatus'] = 'Resolved (Duplicate)'
@@ -1369,7 +1369,7 @@ def top(n=None):
 
 @command('browse')
 def browse():
-    '''Browse current case in $BROWSER.
+    '''Browse current case in default browser.
 
     Example:
     >>> browse
