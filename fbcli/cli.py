@@ -801,7 +801,8 @@ class FBBugEvent(FBObj):
         html = self._event.sHtml.get_text(strip=True)
         soup = self._soup(html)
         for img in soup.findAll('img'):
-            imgs.append(FBInlineImg(img.attrs['src']))
+            if 'src' in img.attrs:
+                imgs.append(FBInlineImg(img.attrs['src']))
         return imgs
 
     @property
