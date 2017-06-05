@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from itertools import takewhile, dropwhile
 from subprocess import call
 import contextlib
@@ -155,7 +156,7 @@ class Text(object):
 
     @property
     def files(self):
-        fs = {}
+        fs = OrderedDict()
         for fname_ in self.meta.get('Files', []):
             # Handle paths like ~/README.txt
             fname = os.path.expanduser(fname_)
@@ -164,7 +165,7 @@ class Text(object):
         return fs
 
     def is_empty(self):
-        return not self.body
+        return not self.body and not self.meta
 
     def validate_for_new(self):
         assert 'Title' in self.meta, 'Missing title'
