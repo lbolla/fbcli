@@ -6,6 +6,7 @@ from __future__ import print_function
 from functools import wraps
 from subprocess import call
 import contextlib
+import hashlib
 import logging
 import os
 import re
@@ -651,18 +652,30 @@ class FBInlineLink(FBBaseLink):
 class FBAttachment(FBObj):
 
     TMPL = Template(
-        '''{{ ui.attachmentid(obj.id) }} {{ ui.lightgreen(obj.filename) }}''')
+        '''{{ ui.attachmentid(obj.id) }} {{ ui.lightgreen(obj.filename) }} '''
+        '''{{ ui.darkgray(obj.url) }}''')
 
     INVALID_CHARS_RE = re.compile(r'[\/*?|]')
 
+    logger = logging.getLogger('fb.attachment')
+
     def __init__(self, attachment):
         self._attachment = attachment
+        self._parse_url()
+
+    def _parse_url(self):
+        url = urllib.parse.urlparse(self.url)
+        q = urllib.parse.parse_qs(url.query)
+        self._internal = 'ixAttachment' in q
+        return q
 
     @property
     def id(self):
-        url = urllib.parse.urlparse(self.url)
-        q = urllib.parse.parse_qs(url.query)
-        return int(q['ixAttachment'][0])
+        if self._internal:
+            q = self._parse_url()
+            return int(q['ixAttachment'][0])
+        else:
+            return hash(self.url) % 10000
 
     @property
     def filename(self):
@@ -683,7 +696,11 @@ class FBAttachment(FBObj):
         return os.path.join(tempfile.gettempdir(), fname)
 
     def download(self):
-        url = self.url + '&token={}'.format(FB.current_token)
+        url = self.url
+        if self._internal:
+            url += '&token={}'.format(FB.current_token)
+
+        self.logger.debug('Fetching %s', url)
         r = urllib.request.urlopen(url)
         assert r.getcode() == 200, 'Failed to download {}'.format(url)
 
@@ -701,11 +718,20 @@ class FBAttachment(FBObj):
 
 class FBInlineImg(FBAttachment):
 
+    TMPL = Template(
+        '''{{ ui.attachmentid(obj.id) }} {{ ui.green(obj.filename) }} '''
+        '''{{ ui.darkgray(obj.url) }}''')
+
     def __init__(self, url):  # pylint: disable=super-init-not-called
         self._url = url
         url = urllib.parse.urlparse(self.url)
         data = dict(urllib.parse.parse_qsl(url.query))
-        self._filename = data['sFileName']
+        if 'sFileName' in data:
+            self._internal = True
+            self._filename = data['sFileName']
+        else:
+            self._internal = False
+            self._filename = os.path.basename(url.path)
 
     @property
     def filename(self):
