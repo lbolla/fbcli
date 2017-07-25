@@ -288,6 +288,7 @@ class FBClient(object):
         stype_map = {
             'Task': 'Bug',
             'Inquiry': 'Bug',
+            'Feature': 'Bug',
         }
         stype = stype_map.get(category, category)
         path = '/f/api/0/favorites/'
