@@ -6,7 +6,6 @@ from __future__ import print_function
 from functools import wraps
 from subprocess import call
 import contextlib
-import hashlib
 import logging
 import os
 import re
@@ -1265,7 +1264,7 @@ def reopen():
 
 
 @command('duplicate')
-def duplicate(*args):
+def duplicate():
     '''Resolve the current ticket as duplicate.
 
     Example:
