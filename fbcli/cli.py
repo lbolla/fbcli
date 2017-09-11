@@ -632,7 +632,7 @@ class FBLink(FBBaseLink):
 
     def rewrite(self, text):
         return text[:self.pos] + text[self.pos:].replace(
-            self.url, str(self), 1)
+            self.url, self.to_string(), 1)
 
 
 class FBInlineLink(FBBaseLink):
