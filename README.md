@@ -17,6 +17,8 @@ Get help from `fb`:
     >>> help
     >>> help <command>  # for more
 
+Python2 is deprecated: please use Python3.
+
 # Configuration
 
 `fbcli` can make use of several environmental variables:
