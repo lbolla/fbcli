@@ -827,7 +827,10 @@ class FBBugEvent(FBObj):
         soup = self._soup(html)
         for img in soup.findAll('img'):
             if 'src' in img.attrs:
-                imgs.append(FBInlineImg(img.attrs['src']))
+                src = img.attrs['src'].strip()
+                # Only support http links
+                if src.startswith('http'):
+                    imgs.append(FBInlineImg(src))
         return imgs
 
     @property
