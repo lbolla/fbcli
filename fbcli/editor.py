@@ -11,7 +11,7 @@ import yaml
 
 from fbcli import errors
 
-EDITOR = os.environ.get('EDITOR', 'vim')
+EDITOR = os.environ.get('EDITOR', 'vi')
 COMMENT_CHAR = '#'
 FOOTER = '''# Lines starting wth "#" will be ignored.
 # Leave this file empty to abort action.
@@ -62,7 +62,7 @@ def _write(header=DEFAULT_HEADER):
             fid.flush()
 
         if EDITOR:
-            call([EDITOR, fid.name])
+            call(EDITOR.split() + [fid.name])
         fid.seek(0)
         text = fid.read()
         return Text(text)
