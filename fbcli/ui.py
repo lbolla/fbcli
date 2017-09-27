@@ -146,7 +146,20 @@ def completer(text, state):
         COMMANDS, ALIASES, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
 
     line = readline.get_line_buffer()
+
     cmd = line.split()[0] if line else None
+    rest = line.split()[1:] if line else None
+    if line and not line.endswith(' '):
+        rest = rest[:-1]
+
+    if not text and not rest and state > 0:
+        return None
+
+    if rest:
+        text = ' '.join(rest) + ' ' + text
+
+    if len(text) < 2:
+        return None
 
     all_options = []
     if cmd == 'attachment':
@@ -163,7 +176,10 @@ def completer(text, state):
 
     options = [x for x in all_options if text.lower() in x.lower()]
     try:
-        return options[state]
+        found = options[state]
+        if rest:
+            found = found[len(' '.join(rest)) + 1:]
+        return found + ' '
     except IndexError:
         return None
 
