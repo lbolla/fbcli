@@ -14,6 +14,7 @@ import tempfile
 
 import six
 from six.moves import input, urllib, configparser
+from lazy_property import LazyProperty as property
 
 from tornado.template import Template
 from tornado.options import parse_command_line
@@ -1773,15 +1774,15 @@ def unfavorite(ixBug=None):
 
 
 @command('recent')
-def recent():
-    '''Get recent cases.'''
+def recent(n=10):
+    '''Get recent `n` cases.'''
 
     fs = FBCaseFavorites()
     if not fs.recent:
         print('No recent cases.')
         return
     print()
-    for case in fs.recent:
+    for case in fs.recent[:int(n)]:
         print(case)
     print()
 

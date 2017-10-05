@@ -4,6 +4,7 @@ from functools import partial, wraps
 import atexit
 import contextlib
 import fcntl
+import logging
 import os
 import readline
 import signal
@@ -16,6 +17,19 @@ from six.moves import html_parser
 
 
 READLINE_HISTFILE = os.path.join(os.path.expanduser("~"), ".fbcli_history")
+
+
+def _create_readline_logger():
+    readline_logger = logging.getLogger('ui.readline')
+    handler = logging.FileHandler('/tmp/fbcli_readline.log')
+    handler.setFormatter(
+        logging.Formatter('%(asctime)-15s %(levelname)s %(message)s'))
+    readline_logger.addHandler(handler)
+    readline_logger.propagate = False
+    return readline_logger
+
+
+READLINE_LOGGER = _create_readline_logger()
 
 
 def colorize(color, s, readline_safe=False):
@@ -145,6 +159,7 @@ def completer(text, state):
     from fbcli.cli import (
         COMMANDS, ALIASES, LAST_SEARCH, FBShortCase, FBPerson, CURRENT_CASE)
 
+    # READLINE_LOGGER.info('text=%s state=%s', text, state)
     line = readline.get_line_buffer()
 
     cmd = line.split()[0] if line else None
@@ -152,17 +167,21 @@ def completer(text, state):
     if line and not line.endswith(' '):
         rest = rest[:-1]
 
-    if not text and not rest and state > 0:
-        return None
+    # if not text and not rest and state > 0:
+    #     return None
 
     if rest:
         text = ' '.join(rest) + ' ' + text
 
-    if len(text) < 2:
-        return None
+    # if len(text) < 2:
+    #     READLINE_LOGGER.info('text too small')
+    #     return None
+
+    # READLINE_LOGGER.info(
+    #     'cmd=%s line=%s rest=%s text=%s', cmd, line, rest, text)
 
     all_options = []
-    if cmd == 'attachment':
+    if cmd == 'attachment' and not text:
         if CURRENT_CASE:
             all_options += [str(a.id) for a in CURRENT_CASE.attachments]
     elif cmd in ('assign', 'notify'):
@@ -174,13 +193,19 @@ def completer(text, state):
         if LAST_SEARCH:
             all_options += [str(case.id) for case in LAST_SEARCH.shortcases]
 
-    options = [x for x in all_options if text.lower() in x.lower()]
+    # READLINE_LOGGER.info('all_options=%s', all_options)
+    query = text.lower()
+    options = [x for x in all_options if query in x.lower()]
+    # READLINE_LOGGER.info('#options=%s', len(options))
+
     try:
         found = options[state]
         if rest:
             found = found[len(' '.join(rest)) + 1:]
+        # READLINE_LOGGER.info('found=%s', found)
         return found + ' '
     except IndexError:
+        # READLINE_LOGGER.info('No suggestions found')
         return None
 
 

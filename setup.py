@@ -30,6 +30,7 @@ setup(
         'tornado>=4,<5dev',
         'pyyaml>=3,<4dev',
         'requests>=2.12.1,<3dev',
+        'lazy-property==0.0.1',
         'six',
     ] + extra_install_requires,
     test_suite='tests',
