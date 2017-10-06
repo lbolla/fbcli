@@ -494,7 +494,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     @property
     def tags(self):
-        return filter(None, self._case.tags.get_text(strip=True).split(','))
+        return list(
+            filter(None, self._case.tags.get_text(strip=True).split(',')))
 
     @property
     def operations(self):
@@ -775,10 +776,10 @@ class FBBugEvent(FBObj):
 
     @property
     def changes(self):
-        return filter(None, [
+        return list(filter(None, [
             c.strip()
             for c in self._event.sChanges.get_text(strip=True).splitlines()
-        ])
+        ]))
 
     @property
     def raw_comment(self):
