@@ -1183,7 +1183,8 @@ def show(ixBug=None):
     '''
     case = FBCase.get_by_id_or_current(ixBug)
     print(case)
-    case.mark_as_viewed()
+    if ixBug is not None:
+        case.mark_as_viewed()
 
 
 @command('header')
