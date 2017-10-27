@@ -29,7 +29,7 @@ def _create_readline_logger():
     return readline_logger
 
 
-READLINE_LOGGER = _create_readline_logger()
+# READLINE_LOGGER = _create_readline_logger()
 
 
 def colorize(color, s, readline_safe=False):
@@ -167,21 +167,14 @@ def completer(text, state):
     if line and not line.endswith(' '):
         rest = rest[:-1]
 
-    # if not text and not rest and state > 0:
-    #     return None
-
     if rest:
         text = ' '.join(rest) + ' ' + text
-
-    # if len(text) < 2:
-    #     READLINE_LOGGER.info('text too small')
-    #     return None
 
     # READLINE_LOGGER.info(
     #     'cmd=%s line=%s rest=%s text=%s', cmd, line, rest, text)
 
     all_options = []
-    if cmd == 'attachment' and not text:
+    if cmd == 'attachment' and text != 'attachment':
         if CURRENT_CASE:
             all_options += [str(a.id) for a in CURRENT_CASE.attachments]
     elif cmd in ('assign', 'notify'):
