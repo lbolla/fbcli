@@ -90,6 +90,16 @@ def xdg_open(what):
             shell=True)
 
 
+def xclip(what):
+    retval = call('which xclip > /dev/null', shell=True)
+    if retval != 0:
+        logging.warning('Cannot clip: No xclip available')
+    else:
+        call(
+            'echo "{}" | xclip -selection c'.format(what),
+            shell=True)
+
+
 class Command(object):
 
     def __init__(self, f):
@@ -578,6 +588,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 
     def browse(self):
         xdg_open(self.permalink)
+        xclip(self.permalink)
 
     def mark_as_viewed(self):
         FB.view(ixBug=self.id)
@@ -604,6 +615,7 @@ class FBBaseLink(FBObj):
 
     def browse(self):
         xdg_open(self.url)
+        xclip(self.url)
 
     def rewrite(self, text):
         raise NotImplementedError()
@@ -1085,6 +1097,7 @@ class FBCheckin(FBObj):
 
     def browse(self):
         xdg_open(self.url)
+        xclip(self.url)
 
 
 def get_prompt():
