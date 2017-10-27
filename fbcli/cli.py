@@ -328,10 +328,6 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self._case = case
         set_current_case(self)
 
-    def reset(self):
-        self._case = self._get_raw(self.id)
-        set_current_case(self)
-
     @classmethod
     def get_by_id(cls, ixBug):
         raw = FBCase._get_raw(ixBug)
@@ -535,32 +531,30 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             op, self.operations)
 
     def edit(self, **kwargs):
+        if not kwargs:
+            return
         self.assert_operation('edit')
         FB.edit(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def resolve(self, **kwargs):
         self.assert_operation('resolve')
         FB.resolve(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def reopen(self, **kwargs):
         self.assert_operation('reopen')
         FB.reopen(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def reactivate(self, **kwargs):
         self.assert_operation('reactivate')
         FB.reactivate(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def assign(self, person, **kwargs):
         self.assert_operation('assign')
@@ -568,24 +562,19 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             sPersonAssignedTo=person,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def notify(self, person, **kwargs):
-        if kwargs:
-            self.edit(**kwargs)
+        self.edit(**kwargs)
         FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
-        self.reset()
 
     def amend(self, event, **kwargs):
-        if FB.amend(self.id, event.id, self._clean_kwargs(kwargs)):
-            self.reset()
+        FB.amend(self.id, event.id, self._clean_kwargs(kwargs))
 
     def close(self, **kwargs):
         self.assert_operation('close')
         FB.close(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
             **self._clean_kwargs(kwargs))
-        self.reset()
 
     def browse(self):
         xdg_open(self.permalink)
@@ -1105,6 +1094,11 @@ def get_prompt():
     return p
 
 
+def refresh():
+    assert_current()
+    FBCase.get_by_id_or_current(CURRENT_CASE.id)
+
+
 @command('logon')
 def logon():
     '''Logon to FB API.
@@ -1231,6 +1225,7 @@ def close():
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.close(**params)
+        refresh()
 
 
 @command('reactivate')
@@ -1240,6 +1235,7 @@ def reactivate():
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reactivate(**params)
+        refresh()
 
 
 @command('resolve')
@@ -1258,6 +1254,7 @@ def resolve(*args):
         if args and not params.get('sStatus'):
             params['sStatus'] = ' '.join(args)
         CURRENT_CASE.resolve(**params)
+        refresh()
 
 
 @command('reopen')
@@ -1267,6 +1264,7 @@ def reopen():
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.reopen(**params)
+        refresh()
 
 
 @command('duplicate')
@@ -1282,6 +1280,7 @@ def duplicate():
         params = text.get_params_for_comment() if text else {}
         params['sStatus'] = 'Resolved (Duplicate)'
         CURRENT_CASE.resolve(**params)
+        refresh()
         # TODO not working
         # FB.duplicate(CURRENT_CASE.id, ixdup)
 
@@ -1311,6 +1310,7 @@ def assign(*args):
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.assign(person, **params)
+        refresh()
 
 
 @command('comment')
@@ -1327,6 +1327,7 @@ def comment():
         editor.abort_if_empty(text)
         params = text.get_params_for_comment()
         CURRENT_CASE.edit(**params)
+        refresh()
 
 
 @command('reply')
@@ -1357,6 +1358,7 @@ def reply(ixBugEvent=None):
         editor.abort_if_empty(text)
         params = text.get_params_for_comment()
         CURRENT_CASE.edit(**params)
+        refresh()
 
 
 @command('search')
@@ -1644,6 +1646,7 @@ def edit(*args):
     assert_operation('edit')
     kwargs = _api_kwargs(args)
     CURRENT_CASE.edit(**kwargs)
+    refresh()
 
 
 @command('raw')
