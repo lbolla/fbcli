@@ -238,10 +238,14 @@ class FBPerson(FBObj):
 
     @classmethod
     def get_by_guess(cls, what):
-        if isinstance(what, int):
-            return cls.get_by_id(what)
+        try:
+            return cls.get_by_id(int(what))
+        except ValueError:
+            pass
+
         if '@' in what or what == what.lower():
             return cls.get_by_email(what)
+
         return cls.get_by_fullname(what)
 
     @classmethod
@@ -578,7 +582,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
         self.assert_operation('assign')
         FB.assign(
             ixBug=self.id, ixPersonEditedBy=CURRENT_USER.id,
-            sPersonAssignedTo=person,
+            sPersonAssignedTo=person.fullname,
             **self._clean_kwargs(kwargs))
 
     def notify(self, persons, **kwargs):
@@ -1325,10 +1329,12 @@ def assign(*args):
     Example:
     >>> assign <person>
     >>> assign Lorenzo Bolla
+    >>> assign me@example.com
+    >>> assign 1234
     '''
     assert_operation('assign')
-    assert len(args) > 0, 'No assignee'
-    person = ' '.join(args)
+    assert args, 'No assignee'
+    person = FBPerson.get_by_guess(' '.join(args))
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
         CURRENT_CASE.assign(person, **params)
