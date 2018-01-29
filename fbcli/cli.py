@@ -238,6 +238,7 @@ class FBPerson(FBObj):
 
     @classmethod
     def get_by_guess(cls, what):
+        what = what.strip()
         try:
             return cls.get_by_id(int(what))
         except ValueError:
@@ -586,8 +587,8 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             **self._clean_kwargs(kwargs))
 
     def notify(self, persons, **kwargs):
-        for person in persons:
-            FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
+        person_ids = [p.id for p in persons]
+        FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person_ids)
         self.edit(**kwargs)
 
     def amend(self, event, **kwargs):

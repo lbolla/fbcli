@@ -125,14 +125,14 @@ class FBClient(object):
         r.raise_for_status()
         return r.json()
 
-    def notify(self, ixbug, ixbugeventlatest, ixPerson):
+    def notify(self, ixbug, ixbugeventlatest, ixPersons):
         path = '/f/api/0/cases/{}'.format(ixbug)
         url = self.full_url_with_token(path)
         params = {
             'sCommand': 'edit',
             'sFormat': 'plain',
             'ixBug': ixbug,
-            'rgixNotify': [ixPerson],
+            'rgixNotify': ixPersons,
             'ixBugEventLatest': ixbugeventlatest,
         }
 
