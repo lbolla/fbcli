@@ -237,6 +237,14 @@ class FBPerson(FBObj):
         return cls(person)
 
     @classmethod
+    def get_by_guess(cls, what):
+        if isinstance(what, int):
+            return cls.get_by_id(what)
+        if '@' in what or what == what.lower():
+            return cls.get_by_email(what)
+        return cls.get_by_fullname(what)
+
+    @classmethod
     def get_by_email(cls, email):
         for p in cls.CACHE:
             if p.email == email:
@@ -573,9 +581,10 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
             sPersonAssignedTo=person,
             **self._clean_kwargs(kwargs))
 
-    def notify(self, person, **kwargs):
+    def notify(self, persons, **kwargs):
+        for person in persons:
+            FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
         self.edit(**kwargs)
-        FB.notify(CURRENT_CASE.id, CURRENT_CASE.last_event.id, person.id)
 
     def amend(self, event, **kwargs):
         FB.amend(self.id, event.id, self._clean_kwargs(kwargs))
@@ -1727,14 +1736,31 @@ def checkin(icheckin):
 
 @command('notify')
 def notify(*args):
-    '''Notify someone of this ticket.'''
+    '''Notify people of this ticket.
+
+    Example:
+    >>> notify 123  # Search by ID
+    >>> notify donald.knuth@example.com  # Search by email
+    >>> notify Donald Knuth # Search by full name
+    >>> notify 123, me, Somebody Else  # notify many people
+    '''
     assert_current()
 
-    name = ' '.join(args)
-    person = FBPerson.get_by_fullname(name)
+    names = ' '.join(args)
+    persons = [
+        FBPerson.get_by_guess(name)
+        for name in names.split(',')
+    ]
+    persons = {
+        p.id: p
+        for p in persons
+        if p.id != CURRENT_USER.id
+    }
+    assert persons, 'No persons to notify'
     with editor.maybe_writing('Add a comment?') as text:
         params = text.get_params_for_comment() if text else {}
-        CURRENT_CASE.notify(person, **params)
+        CURRENT_CASE.notify(persons.values(), **params)
+        refresh()
 
 
 @command('amend')
@@ -1757,6 +1783,7 @@ def amend(ixBugEvent=None):
         editor.abort_if_empty(text)
         params = text.get_params_for_amend()
         CURRENT_CASE.amend(event, **params)
+        refresh()
 
 
 @command('favorites')
