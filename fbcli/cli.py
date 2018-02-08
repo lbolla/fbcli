@@ -634,6 +634,12 @@ class FBBaseLink(FBObj):
     def rewrite(self, text):
         raise NotImplementedError()
 
+    @staticmethod
+    def _rewrite(text, pos, old, new):
+        delta = len(new) - len(old)
+        return (text[:pos] + text[pos:].replace(old, new, 1), delta)
+
+
 
 class FBLink(FBBaseLink):
 
@@ -648,8 +654,7 @@ class FBLink(FBBaseLink):
         self.pos = pos
 
     def rewrite(self, text):
-        return text[:self.pos] + text[self.pos:].replace(
-            self.url, self.to_string(), 1)
+        return self._rewrite(text, self.pos, self.url, self.to_string())
 
 
 class FBInlineLink(FBBaseLink):
@@ -662,7 +667,7 @@ class FBInlineLink(FBBaseLink):
         self.text = text
 
     def rewrite(self, text):
-        return text.replace(self.text, self.to_string(self.TMPL_TEXT), 1)
+        return self._rewrite(text, 0, self.text, self.to_string())
 
 
 class FBAttachment(FBObj):
@@ -805,8 +810,11 @@ class FBBugEvent(FBObj):
         return self._linkify(self.raw_comment)
 
     def _linkify(self, text):
+        offset = 0
         for link in self.links:
-            text = link.rewrite(text)
+            link.pos += offset
+            text, delta = link.rewrite(text)
+            offset += delta
         return text
 
     @property
