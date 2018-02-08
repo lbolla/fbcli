@@ -631,7 +631,7 @@ class FBBaseLink(FBObj):
         xdg_open(self.url)
         xclip(self.url)
 
-    def rewrite(self, text):
+    def rewrite(self, text, offset=0):
         raise NotImplementedError()
 
     @staticmethod
@@ -653,8 +653,11 @@ class FBLink(FBBaseLink):
         self.url = url
         self.pos = pos
 
-    def rewrite(self, text):
-        return self._rewrite(text, self.pos, self.url, self.to_string())
+    def rewrite(self, text, offset=0):
+        new, delta = self._rewrite(text, self.pos, self.url, self.to_string())
+        self.pos += offset
+        return new, delta
+
 
 
 class FBInlineLink(FBBaseLink):
@@ -666,8 +669,11 @@ class FBInlineLink(FBBaseLink):
         super(FBInlineLink, self).__init__(id_, event, url)
         self.text = text
 
-    def rewrite(self, text):
-        return self._rewrite(text, 0, self.text, self.to_string())
+    def rewrite(self, text, offset=0):
+        idx = text[offset:].index(self.text)
+        pos = offset + idx
+        new, delta = self._rewrite(text, pos, self.text, self.to_string())
+        return new, idx + delta
 
 
 class FBAttachment(FBObj):
@@ -812,8 +818,7 @@ class FBBugEvent(FBObj):
     def _linkify(self, text):
         offset = 0
         for link in self.links:
-            link.pos += offset
-            text, delta = link.rewrite(text)
+            text, delta = link.rewrite(text, offset)
             offset += delta
         return text
 
