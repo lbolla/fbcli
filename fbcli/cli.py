@@ -640,7 +640,6 @@ class FBBaseLink(FBObj):
         return (text[:pos] + text[pos:].replace(old, new, 1), delta)
 
 
-
 class FBLink(FBBaseLink):
 
     TMPL = Template(
@@ -657,7 +656,6 @@ class FBLink(FBBaseLink):
         new, delta = self._rewrite(text, self.pos, self.url, self.to_string())
         self.pos += offset
         return new, delta
-
 
 
 class FBInlineLink(FBBaseLink):
@@ -780,6 +778,8 @@ class FBBugEvent(FBObj):
 {% raw a %}{% end %}{% end %}
 ''')
 
+    logger = logging.getLogger('fb.event')
+
     def __init__(self, fbcase, event):
         self._event = event
         self._fbcase = fbcase
@@ -813,7 +813,11 @@ class FBBugEvent(FBObj):
 
     @property
     def comment(self):
-        return self._linkify(self.raw_comment)
+        try:
+            return self._linkify(self.raw_comment)
+        except Exception:
+            self.logger.exception('ERROR to linkify: %s', self.raw_comment)
+            return self.raw_comment
 
     def _linkify(self, text):
         offset = 0
