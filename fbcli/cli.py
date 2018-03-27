@@ -670,7 +670,8 @@ class FBInlineLink(FBBaseLink):
     def rewrite(self, text, offset=0):
         idx = text[offset:].index(self.text)
         pos = offset + idx
-        new, delta = self._rewrite(text, pos, self.text, self.to_string())
+        new, delta = self._rewrite(
+            text, pos, self.text, self.to_string(self.TMPL_TEXT))
         return new, idx + delta
 
 
