@@ -2015,7 +2015,7 @@ def create_aliases():
     # Default aliases
     alias('?', 'help')
     alias('b', 'browse')
-    alias('bp, 'browse_project')
+    alias('bp', 'browse_project')
     alias('bye', 'quit')
     alias('c', 'comment')
     alias('exit', 'quit')
