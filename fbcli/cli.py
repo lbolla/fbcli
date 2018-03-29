@@ -16,6 +16,7 @@ import tempfile
 
 import six
 from six.moves import input, urllib, configparser
+from six.moves.urllib_parse import urlencode
 from lazy_property import LazyProperty as property
 
 from tornado.template import Template
@@ -1065,6 +1066,13 @@ class FBProject(FBObj):
             [cls(pxml) for pxml in result.findAll('project')],
             key=lambda p: p.name)
 
+    @classmethod
+    def get_by_name(cls, name):
+        result = FB.viewProject(sProject=name)
+        proj = result.find('project')
+        assert proj, 'Project {} not found!'.format(name)
+        return cls(proj)
+
     @property
     def id(self):
         return int(self._project.ixProject.get_text(strip=True))
@@ -1076,6 +1084,21 @@ class FBProject(FBObj):
     @property
     def owner(self):
         return self._project.sPersonOwner.get_text(strip=True)
+
+    def browse(self):
+        base_url = '/f/page'
+        params = {
+            'ixProject': self.id,
+            'ixStatus': -2,
+            'pgx': 'FS',
+            'view': 'Line',
+            'fClosedBugs': 1,
+            'fOpenBugs': 1,
+            'sChartSubType': 'stacked',
+        }
+        url = FB.full_url(base_url + '?' + urlencode(params))
+        xdg_open(url)
+        xclip(url)
 
 
 class FBArea(FBObj):
@@ -1532,6 +1555,16 @@ def browse():
     '''
     assert_current()
     CURRENT_CASE.browse()
+
+
+@command('browse_project')
+def browse_project(name=None):
+    '''Browse project's cases in default browser.'''
+    if name is None:
+        assert_current()
+        name = CURRENT_CASE.project
+    proj = FBProject.get_by_name(name)
+    proj.browse()
 
 
 @command('new')
