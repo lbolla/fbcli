@@ -6,6 +6,7 @@ from __future__ import print_function
 from functools import wraps
 from subprocess import call
 import contextlib
+import datetime
 import logging
 import os
 import re
@@ -33,11 +34,22 @@ LAST_SEARCH = None
 COMMANDS = {}
 ALIASES = {}
 
+ASSUMED_ANSWER = None
+
 
 # Poor man HTML link regex
 URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\},]*')
 
 logger = logging.getLogger('fb.cli')
+
+
+@contextlib.contextmanager
+def assume_answer(ans):
+    global ASSUMED_ANSWER
+    orig = ASSUMED_ANSWER
+    ASSUMED_ANSWER = ans
+    yield ans
+    ASSUMED_ANSWER = orig
 
 
 def set_current_case(case):
@@ -930,6 +942,11 @@ class FBShortCase(FBObj):
     def priority_id(self):
         return int(self._case.ixPriority.get_text(strip=True))
 
+    @property
+    def last_updated(self):
+        return datetime.datetime.strptime(
+            self._case.dtLastUpdated.get_text(), '%Y-%m-%dT%H:%M:%SZ')
+
     def __eq__(self, case):
         return self.id == case.id
 
@@ -946,7 +963,8 @@ class FBCaseSearch(FBObj):
 
     def __init__(self, shortcases):
         self.shortcases = sorted(
-            shortcases, key=lambda p: (p.priority_id, p.project, p.id))
+            shortcases,
+            key=lambda p: (p.priority_id, p.project, p.last_updated))
         set_last_search(self)
 
     @classmethod
@@ -961,8 +979,9 @@ class FBCaseSearch(FBObj):
     @classmethod
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
-        resp = FB.search(
-            q=q, cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority")
+        cols = (
+            "ixBug,sTitle,sStatus,sProject,sPriority,ixPriority,dtLastUpdated")
+        resp = FB.search(q=q, cols=cols)
         return cls._parse_cases(resp)
 
     @classmethod
@@ -971,6 +990,12 @@ class FBCaseSearch(FBObj):
         resp = FB.listCases(
             cols="ixBug,sTitle,sStatus,sProject,sPriority,ixPriority", max=n)
         return cls._parse_cases(resp)
+
+    def filter(self, pred):
+        self.shortcases = [sc for sc in self.shortcases if pred(sc)]
+
+    def __iter__(self):
+        return iter(self.shortcases)
 
 
 class FBFavoriteCase(FBObj):
@@ -1408,6 +1433,21 @@ def reply(ixBugEvent=None):
         refresh()
 
 
+def _search(args, pred=None):
+
+    def kwargs_to_q(kwargs):
+        return ' '.join('{}:"{}"'.format(k, v) for k, v in kwargs.items())
+
+    q = ' '.join(args)
+    if '=' in q:
+        kwargs = _parse_kwargs(args, sep='=')
+        q = kwargs_to_q(kwargs)
+    rs = FBCaseSearch.search(q)
+    if pred:
+        rs.filter(pred)
+    return rs
+
+
 @command('search')
 def search(*args):
     '''Search for cases.
@@ -1427,15 +1467,49 @@ def search(*args):
     >>> search assignedTo:me carmax
     '''
 
-    def kwargs_to_q(kwargs):
-        return ' '.join('{}:"{}"'.format(k, v) for k, v in kwargs.items())
-
-    q = ' '.join(args)
-    if '=' in q:
-        kwargs = _parse_kwargs(args, sep='=')
-        q = kwargs_to_q(kwargs)
-    rs = FBCaseSearch.search(q)
+    rs = _search(args)
     print(rs)
+
+
+@command('stale')
+def stale(*args):
+    '''Search for stale cases.
+
+    Find active cases in project last updated 90 days ago:
+    >>> stale 90 project:devops status:active
+    '''
+
+    days, args = args[0], args[1:]
+    age = datetime.timedelta(days=int(days))
+
+    def is_stale(sc):
+        return datetime.datetime.utcnow() - sc.last_updated > age
+
+    rs = _search(args, is_stale)
+    print(rs)
+
+
+@command('apply')
+def apply(*args):
+    '''Apply command to last search result.
+
+    Close stale tickets:
+    >>> stale 365 project:devops status:active
+    >>> apply close
+
+    Note: interactivity is reduced to a minimum.
+    '''
+
+    if not LAST_SEARCH:
+        print('No last search.')
+        return
+
+    cmd, args = args[0], args[1:]
+    for sc in LAST_SEARCH:
+        with assume_answer('n'):
+            print('to case {}'.format(sc.id))
+            FBCase.get_by_id_or_current(sc.id)
+            exec_(cmd, args)
 
 
 @command('top')

@@ -72,7 +72,8 @@ def _write(header=DEFAULT_HEADER):
 
 
 def yes_or_no(question):
-    ans = input(question + ' [Y/n] ')
+    from fbcli import cli
+    ans = cli.ASSUMED_ANSWER or input(question + ' [Y/n] ')
     if ans.lower() in ['', 'y', 'yes']:
         return YES
     return NO
