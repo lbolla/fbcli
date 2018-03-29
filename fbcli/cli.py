@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+from collections import OrderedDict
 from functools import wraps
 from subprocess import call
 import contextlib
@@ -1440,7 +1441,7 @@ def _search(args, pred=None):
 
     q = ' '.join(args)
     if '=' in q:
-        kwargs = _parse_kwargs(args, sep='=')
+        kwargs = _parse_kwargs(args)
         q = kwargs_to_q(kwargs)
     rs = FBCaseSearch.search(q)
     if pred:
@@ -1704,7 +1705,7 @@ def operations():
 
 
 def _parse_kwargs(args_, sep='='):
-    kwargs = {}
+    kwargs = OrderedDict()
     if not args_:
         return kwargs
     line = ' '.join(args_)
@@ -1743,9 +1744,8 @@ def _to_api_kwargs(kwargs):
         'tag': 'sTags',
         'title': 'sTitle',
     }
-    return {
-        translate.get(k.lower(), k): v for k, v in kwargs.items()
-    }
+    return OrderedDict(
+        (translate.get(k.lower(), k), v) for k, v in kwargs.items())
 
 
 def _api_kwargs(args_):
