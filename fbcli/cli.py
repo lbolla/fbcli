@@ -1088,14 +1088,22 @@ class FBProject(FBObj):
     def browse(self):
         base_url = '/f/page'
         params = {
+            'P20_cDaysPrevious': '365',
+            'P20_sChartSubType': 'normal',
+            'P20_sMetric': 'numberofcases',
+            'fClosedBugs': 'ON',
+            'fGridView': '1',
+            'fOpenBugs': 'ON',
+            'iTypeOrder': '1,29,2,23,4,22,6,7',
             'ixProject': self.id,
-            'ixStatus': -2,
-            'pgx': 'FS',
-            'view': 'Line',
-            'fClosedBugs': 1,
-            'fOpenBugs': 1,
-            'sChartSubType': 'stacked',
+            'ixStatus': '-2',
+            'pre': 'preSaveFilter',
+            'sView': 'line',
+            'sort1': '8',
+            'sort2': '3',
+            'sort3': '11'
         }
+
         url = FB.full_url(base_url + '?' + urlencode(params))
         xdg_open(url)
         xclip(url)
