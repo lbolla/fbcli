@@ -1894,7 +1894,6 @@ def notify(*args):
     persons = {
         p.id: p
         for p in persons
-        if p.id != CURRENT_USER.id
     }
     assert persons, 'No persons to notify'
     with editor.maybe_writing('Add a comment?') as text:
