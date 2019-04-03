@@ -667,8 +667,8 @@ class FBLink(FBBaseLink):
         self.pos = pos
 
     def rewrite(self, text, offset=0):
-        new, delta = self._rewrite(text, self.pos, self.url, self.to_string())
         self.pos += offset
+        new, delta = self._rewrite(text, self.pos, self.url, self.to_string())
         return new, delta
 
 
