@@ -19,7 +19,7 @@ setup(
         'fogbugz>=1.0.5',
         'html2text>=2018.1.9',
         'tornado>=4,<5dev',
-        'pyyaml>=3,<4dev',
+        'pyyaml>=4.2b1',
         'requests>=2.12.1,<3dev',
         'lazy-property==0.0.1',
         'six',
