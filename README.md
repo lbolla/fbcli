@@ -43,9 +43,8 @@ Run tests with:
 
     >>> python setup.py test
 
-Run tests for Py27, Py35 and PyPy with:
+or
 
-    >>> pip install tox
     >>> tox
 
 # References

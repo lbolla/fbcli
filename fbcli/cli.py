@@ -824,6 +824,9 @@ class FBBugEvent(FBObj):
 
     @property
     def raw_comment(self):
+        if self._event.sHtml:
+            import html2text
+            return html2text.html2text(self._event.sHtml.get_text(strip=True))
         return self._event.s.get_text(strip=True)
 
     @property
