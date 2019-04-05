@@ -85,7 +85,7 @@ class TestFBBugEvent(unittest.TestCase):
         parent = cli.FBCase(get_fixture('FB41675.xml'))
         xml = get_fixture('FB38451.xml')
         fb = cli.FBBugEvent(parent, xml)
-        self.assertTrue(fb.comment.startswith(u"Yes. \\xa0I'll"))
+        self.assertTrue(fb.comment.startswith("\\n\\tYes.  I'll"))
 
 
 class TestFBMilestone(unittest.TestCase):
