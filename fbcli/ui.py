@@ -256,6 +256,8 @@ boldred = partial(colorize, '1;31')
 boldwhite = partial(colorize, '1;37')
 boldyellow = partial(colorize, '1;33')
 
+reversewhite = partial(colorize, '7;37')
+
 caseid = partial(_id, boldcyan)
 eventid = partial(_id, darkgray)
 linkid = partial(_id, lightmagenta)
