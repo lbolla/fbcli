@@ -145,7 +145,7 @@ class Text(object):
     def meta(self):
         if self._header is None:
             return {}
-        return yaml.load(self._header)
+        return yaml.safe_load(self._header)
 
     @property
     def body(self):
