@@ -14,6 +14,7 @@ import re
 import sys
 import tempfile
 
+import html2text
 import six
 from six.moves import input, urllib, configparser
 from six.moves.urllib_parse import urlencode
@@ -40,7 +41,15 @@ ASSUMED_ANSWER = None
 
 
 # Poor man HTML link regex
-URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\},]*')
+# URL_RE = re.compile(r'\bhttp[s]?://[^\b \n\r\(\)\[\]\{\},]*')
+# From https://stackoverflow.com/questions/161738/
+#     what-is-the-best-regular-expression-to-check-if-a-string-is-a-valid-url
+URL_RE = re.compile(
+    r'\b(https?|ftp|file)://'
+    r'[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]',
+    re.IGNORECASE)
+
+BOLD_RE = re.compile(r'\*\*([^\*])+\*\*')
 
 logger = logging.getLogger('fb.cli')
 
@@ -163,10 +172,14 @@ class FBObj(object):
     def to_string(self, tmpl=None):
         if tmpl is None:
             tmpl = self.TMPL
-        return tmpl.generate(
+        txt = tmpl.generate(
             obj=self,
             ui=ui,
         ).decode('utf-8')
+        # Compact trailing newlines
+        if txt.endswith('\n\n'):
+            txt = txt.strip() + '\n'
+        return txt
 
     def __unicode__(self):
         return self.to_string()
@@ -519,10 +532,11 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
                 link = FBLink(ilink, event, url, pos)
                 links.append(link)
                 ilink += 1
-            for text, url in event.inline_urls:
-                link = FBInlineLink(ilink, event, url, text)
-                ilink += 1
-                links.append(link)
+            # TODO
+            # for text, url in event.inline_urls:
+            #     link = FBInlineLink(ilink, event, url, text)
+            #     ilink += 1
+            #     links.append(link)
         return links
 
     @property
@@ -825,17 +839,26 @@ class FBBugEvent(FBObj):
     @property
     def raw_comment(self):
         if self._event.sHtml:
-            import html2text
-            return html2text.html2text(self._event.sHtml.get_text(strip=True))
+            txt = self._event.sHtml.get_text(strip=True)
+            text_maker = html2text.HTML2Text()
+            text_maker.body_width = 0
+            text_maker.protect_links = True
+            return text_maker.handle(txt)
+
         return self._event.s.get_text(strip=True)
 
     @property
     def comment(self):
         try:
-            return self._linkify(self.raw_comment)
+            return self._boldify(self._linkify(self.raw_comment))
         except Exception:
             self.logger.exception('ERROR to linkify: %s', self.raw_comment)
             return self.raw_comment
+
+    def _boldify(self, txt):
+        def bold(match):
+            return ui.reversewhite(match.group().strip('*'))
+        return BOLD_RE.sub(bold, txt)
 
     def _linkify(self, text):
         offset = 0
