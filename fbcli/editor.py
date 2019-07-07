@@ -82,6 +82,7 @@ def yes_or_no(question):
 def _maybe_write(question, header=DEFAULT_HEADER):
     if yes_or_no(question) == YES:
         return _write(header)
+    return None
 
 
 @contextlib.contextmanager
@@ -91,8 +92,6 @@ def _clearing():
         yield
     except errors.Aborted:
         clear()
-        raise
-    except Exception:
         raise
     else:
         clear()
@@ -115,7 +114,7 @@ def abort_if_empty(text):
         raise errors.Aborted()
 
 
-class Text(object):
+class Text:
 
     SEP = '---'
 
