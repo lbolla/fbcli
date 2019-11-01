@@ -118,7 +118,7 @@ def _tag(color, s):
 
 
 def title(s):
-    return blue(s)
+    return lightblue(s)
 
 
 def _get_hw():
@@ -250,6 +250,7 @@ lightcyan = partial(colorize, '0;96')
 lightgreen = partial(colorize, '0;92')
 lightmagenta = partial(colorize, '0;95')
 lightred = partial(colorize, '0;91')
+lightblue = partial(colorize, '0;94')
 
 boldcyan = partial(colorize, '1;36')
 boldred = partial(colorize, '1;31')
