@@ -509,7 +509,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
     @property
     def last_event_with_comment(self):
         for event in reversed(self.events):
-            if event.raw_comment:
+            if event.raw_comment.strip():
                 return event
 
     def get_event(self, event_id):
