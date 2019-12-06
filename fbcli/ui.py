@@ -255,6 +255,7 @@ lightblue = partial(colorize, '0;94')
 boldcyan = partial(colorize, '1;36')
 boldred = partial(colorize, '1;31')
 boldwhite = partial(colorize, '1;37')
+bold = partial(colorize, '1')
 boldyellow = partial(colorize, '1;33')
 
 reversewhite = partial(colorize, '7;37')

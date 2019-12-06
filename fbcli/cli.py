@@ -162,7 +162,7 @@ class Alias(object):
 
     def help(self):
         return 'Alias for: {}\n\n{}'.format(
-            ui.boldwhite(self.desc()), self.cmd.help())
+            ui.bold(self.desc()), self.cmd.help())
 
 
 class FBObj(object):
@@ -363,7 +363,7 @@ Assigned to {% raw ui.red(obj.assigned_to) %}
 {% raw ui.caseid(obj.duplicate_of_id) %} {% end %}\
 {% if obj.related_ids %}See also \
 {% raw ' '.join(ui.caseid(c) for c in  obj.related_ids) %} {% end %}
-{% raw ui.boldwhite(obj.permalink) %}
+{% raw ui.bold(obj.permalink) %}
 {{ ui.hl1}}
 '''
     TMPL_EVENTS_TEXT = '''{% for event in obj.events %}
@@ -800,7 +800,7 @@ class FBBugEvent(FBObj):
 
     TMPL = Template(
         '''{{ ui.eventid(obj.id) }} {{ obj.dt }} - {{ obj.person }}
-{% raw ui.boldwhite(ui.html_unescape(obj.desc)) %} \
+{% raw ui.bold(ui.html_unescape(obj.desc)) %} \
 {% for change in obj.changes %}
 {% raw ui.darkgray(' - ' + change) %}{% end %}
 {% raw obj.comment %}{% if obj.attachments %}{% for a in obj.attachments %}
@@ -968,12 +968,28 @@ class FBShortCase(FBObj):
 
     @property
     def priority_id(self):
-        return int(self._case.ixPriority.get_text(strip=True))
+        if self._case.ixPriority:
+            return int(self._case.ixPriority.get_text(strip=True))
+        return 999
 
     @property
     def last_updated(self):
         return datetime.datetime.strptime(
             self._case.dtLastUpdated.get_text(), '%Y-%m-%dT%H:%M:%SZ')
+
+    @property
+    def opened(self):
+        return datetime.datetime.strptime(
+            self._case.dtOpened.get_text(), '%Y-%m-%dT%H:%M:%SZ')
+
+    @property
+    def opened_by_id(self):
+        return int(self._case.ixPersonOpenedBy.get_text(strip=True))
+
+    @property
+    def opened_by(self):
+        return FBPerson.get_by_id(self.opened_by_id)
+
 
     def __eq__(self, case):
         return self.id == case.id
@@ -1008,7 +1024,8 @@ class FBCaseSearch(FBObj):
     def search(cls, q):
         cls.logger.debug('Searching for %r', q)
         cols = (
-            "ixBug,sTitle,sStatus,sProject,sPriority,ixPriority,dtLastUpdated")
+            "ixBug,sTitle,sStatus,sProject,sPriority,ixPriority,"
+            "dtLastUpdated,ixPersonOpenedBy,dtOpened")
         resp = FB.search(q=q, cols=cols)
         return cls._parse_cases(resp)
 
@@ -1179,7 +1196,7 @@ class FBMilestone(FBObj):
 class FBCheckin(FBObj):
 
     TMPL = Template('''{{ ui.linkid(obj.id) }} {% raw ui.magenta(obj.url) %}
-{% raw ui.cyan(obj.date) %} {% raw ui.boldwhite(obj.author) %} \
+{% raw ui.cyan(obj.date) %} {% raw ui.bold(obj.author) %} \
 {% raw ui.white(obj.desc) %}
 ''')
 
